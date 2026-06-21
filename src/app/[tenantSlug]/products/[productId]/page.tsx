@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Package, ArrowLeft, Edit3, Hash, Tag, DollarSign, Layers, Archive, TrendingUp, TrendingDown } from "lucide-react";
+import { Package, ArrowLeft, Edit3, Hash, Tag, DollarSign, Layers, Archive, TrendingUp, TrendingDown, CalendarClock } from "lucide-react";
 import { StockMovementForm } from "@/components/stock-movement-form";
 import { StockMovementList } from "@/components/stock-movement-list";
 
@@ -33,6 +33,17 @@ export default async function ProductDetailPage({
   });
   if (!product) notFound();
 
+  const expiryAttr = product.attributes.find(
+    (a) => a.attributeDef.type === "date" && a.value && /^\d{4}-\d{2}-\d{2}$/.test(a.value)
+  );
+  const expiryDate = expiryAttr ? new Date(expiryAttr.value) : null;
+  const now = new Date();
+  const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const isExpiringSoon =
+    expiryDate &&
+    expiryDate >= now &&
+    expiryDate <= thirtyDaysFromNow;
+
   const isLow = product.quantity <= product.lowStockLimit;
   const isOut = product.quantity === 0;
   const price = Number(product.unitPrice);
@@ -44,13 +55,13 @@ export default async function ProductDetailPage({
   let statusClasses: string;
   if (isOut) {
     statusLabel = "Out of Stock";
-    statusClasses = "tag-flag bg-destructive/10 text-destructive border border-destructive/20";
+    statusClasses = "bg-destructive/10 text-destructive";
   } else if (isLow) {
     statusLabel = "Low Stock";
-    statusClasses = "tag-flag bg-warning/10 text-warning border border-warning/20";
+    statusClasses = "bg-warning/10 text-warning";
   } else {
     statusLabel = "In Stock";
-    statusClasses = "tag-flag bg-success/10 text-success border border-success/20";
+    statusClasses = "bg-success/10 text-success";
   }
 
   const infoItems = [
@@ -79,8 +90,8 @@ export default async function ProductDetailPage({
             </div>
             <div>
               <h1 className="font-heading font-bold text-xl tracking-wider uppercase">{product.name}</h1>
-              <span className={statusClasses}>
-                <span className="tag-dot" />
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-heading font-bold uppercase tracking-wider ${statusClasses}`}>
+                <span className={`size-2 rounded-full ${isOut ? "bg-destructive" : isLow ? "bg-warning" : "bg-success"}`} />
                 {statusLabel}
               </span>
             </div>
@@ -94,6 +105,18 @@ export default async function ProductDetailPage({
           </Link>
         </div>
       </div>
+
+      {isExpiringSoon && (
+        <div className="flex items-center gap-2 border border-accent bg-accent/10 rounded-lg px-4 py-3 text-sm font-sans">
+          <CalendarClock className="size-4 text-accent shrink-0" />
+          <span>
+            <strong className="font-heading font-bold text-xs uppercase tracking-wider text-accent">Expiring soon</strong>
+            <span className="text-muted-foreground ml-2">
+              {expiryAttr?.attributeDef.label}: {expiryDate?.toLocaleDateString()}
+            </span>
+          </span>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {infoItems.map((item) => (

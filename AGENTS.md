@@ -68,6 +68,9 @@ pnpm dlx shadcn@latest add <component> # add shadcn/ui components
 pnpm dlx @better-auth/cli generate   # sync Better Auth schema
 pnpm eslint .                        # lint (no next lint)
 pnpm next typegen                    # generate PageProps/LayoutProps types
+pnpm next build                      # production build (Turbopack)
+pnpm test                            # run Vitest isolation tests
+pnpm seed                            # seed demo data (Liquor Shop + Bicycle Shop)
 ```
 
 ## Build Order
@@ -78,6 +81,20 @@ Phases are strictly sequential: 0 → 1 → 2 → 3 → 4 → 5. Do not skip pha
 - Phase 3: Stock Movements & Low Stock Alerts (StockMovement model, transactional updates, low-stock UI)
 - Phase 4: Dashboard & Polish (summary stats, movement history, empty/loading/error states, responsive)
 - Phase 5: Testing, Hardening & Deployment (isolation tests, Vitest, Vercel deploy, demo seed data)
+
+## Progress Status
+
+### Done
+- Phases 0–4: Full scaffolding, auth, products, stock movements, dashboard, stock takes, CSV exports, PWA, dark mode
+- Remaining 15 audit bugs fixed: `revalidatePath` UUID→slug in stock-take.ts, `$transaction` + `revalidatePath` in attributes/products, `deleteAttribute`→`deleteAttributeAction` void wrapper, `tenantSlug` param on `deleteProduct`, env var for Better Auth `baseURL` in sign-in/out buttons, dynamic `tenantSlug` in `not-found.tsx` link
+
+### In Progress
+- Phase 5: Testing, Hardening & Deployment
+
+### Blocked
+- Docker PostgreSQL must be started (`docker compose up -d`) before running; port 5433, user `invuser`/`invpass`, database `inventory`
+- Google OAuth credentials exist in `.env`; full end-to-end sign-in flow needs manual testing
+- Better Auth CLI has version mismatch with `better-call`; Session/Account/Verification models were hand-written as a workaround
 
 ## Source of Truth
 Full project plan at `docs/multitenant-inventory-project-plan.md`. Read it for schema details, auth flow diagram, and phase-by-phase acceptance criteria.

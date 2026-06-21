@@ -10,9 +10,15 @@ import { Label } from "@/components/ui/label";
 
 const units = ["pcs", "kg", "ltr", "bottle", "pack", "box", "bag", "dozen"] as const;
 
+type SerializedProduct = Omit<Product, "unitPrice" | "costPrice"> & {
+  unitPrice: number;
+  costPrice: number;
+  attributes?: (ProductAttributeValue & { attributeDef: Pick<AttributeDefinition, "id"> })[];
+};
+
 type Props = {
   attributeDefs: Pick<AttributeDefinition, "id" | "key" | "label" | "type">[];
-  product?: Product & { attributes?: (ProductAttributeValue & { attributeDef: Pick<AttributeDefinition, "id"> })[] };
+  product?: SerializedProduct;
   action: (
     prevState: { error?: string } | null,
     formData: FormData

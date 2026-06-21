@@ -7,9 +7,9 @@ import { createLogger } from "@/lib/logger";
 
 const clientLog = createLogger("auth:client");
 
-const authClient = createAuthClient({
-  baseURL: "http://localhost:3000",
-});
+const baseURL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+const authClient = createAuthClient({ baseURL });
 
 export function SignInButton() {
   const [loading, setLoading] = useState(false);

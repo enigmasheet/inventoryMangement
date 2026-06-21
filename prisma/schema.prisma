@@ -8,16 +8,17 @@ datasource db {
 }
 
 model Tenant {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  shopName  String
-  category  String
-  currency  String   @default("रू")
-  createdAt DateTime @default(now())
-  users     User[]
-  products  Product[]
-  attributeDefs AttributeDefinition[]
+  id             String                @id @default(cuid())
+  slug           String                @unique
+  shopName       String
+  category       String
+  currency       String                @default("रू")
+  createdAt      DateTime              @default(now())
+  users          User[]
+  products       Product[]
+  attributeDefs  AttributeDefinition[]
   stockMovements StockMovement[]
+  stockTakes     StockTake[]
 }
 
 model User {
@@ -35,32 +36,32 @@ model User {
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  token        String   @unique
-  expiresAt    DateTime
-  ipAddress    String?
-  userAgent    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
-  id              String  @id @default(cuid())
-  userId          String
-  user            User    @relation(fields: [userId], references: [id])
-  accountId       String
-  providerId      String
-  accessToken     String?
-  refreshToken    String?
-  accessTokenExpiresAt DateTime?
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  scope           String?
-  idToken         String?
-  password        String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
 
 model Verification {
@@ -73,38 +74,39 @@ model Verification {
 }
 
 model AttributeDefinition {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  key       String
-  label     String
-  type      String
-  products  ProductAttributeValue[]
+  id       String                  @id @default(cuid())
+  tenantId String
+  tenant   Tenant                  @relation(fields: [tenantId], references: [id])
+  key      String
+  label    String
+  type     String
+  products ProductAttributeValue[]
 }
 
 model Product {
-  id            String   @id @default(cuid())
-  tenantId      String
-  tenant        Tenant   @relation(fields: [tenantId], references: [id])
-  name          String
-  sku           String
-  unitPrice     Decimal
-  costPrice     Decimal  @default(0)
-  quantity      Int      @default(0)
-  lowStockLimit Int      @default(5)
-  unit          String   @default("pcs")
-  createdAt     DateTime @default(now())
-  attributes    ProductAttributeValue[]
-  movements     StockMovement[]
+  id             String                  @id @default(cuid())
+  tenantId       String
+  tenant         Tenant                  @relation(fields: [tenantId], references: [id])
+  name           String
+  sku            String
+  unitPrice      Decimal
+  costPrice      Decimal                 @default(0)
+  quantity       Int                     @default(0)
+  lowStockLimit  Int                     @default(5)
+  unit           String                  @default("pcs")
+  createdAt      DateTime                @default(now())
+  attributes     ProductAttributeValue[]
+  movements      StockMovement[]
+  stockTakeItems StockTakeItem[]
 
   @@unique([tenantId, sku])
   @@index([tenantId])
 }
 
 model ProductAttributeValue {
-  id             String   @id @default(cuid())
+  id             String              @id @default(cuid())
   productId      String
-  product        Product  @relation(fields: [productId], references: [id])
+  product        Product             @relation(fields: [productId], references: [id])
   attributeDefId String
   attributeDef   AttributeDefinition @relation(fields: [attributeDefId], references: [id])
   value          String
@@ -124,4 +126,30 @@ model StockMovement {
   createdAt DateTime @default(now())
 
   @@index([tenantId, productId])
+}
+
+model StockTake {
+  id          String          @id @default(cuid())
+  tenantId    String
+  tenant      Tenant          @relation(fields: [tenantId], references: [id])
+  status      String          @default("in_progress")
+  note        String?
+  createdAt   DateTime        @default(now())
+  completedAt DateTime?
+  items       StockTakeItem[]
+
+  @@index([tenantId])
+}
+
+model StockTakeItem {
+  id               String    @id @default(cuid())
+  stockTakeId      String
+  stockTake        StockTake @relation(fields: [stockTakeId], references: [id], onDelete: Cascade)
+  productId        String
+  product          Product   @relation(fields: [productId], references: [id])
+  expectedQuantity Int
+  countedQuantity  Int?
+
+  @@unique([stockTakeId, productId])
+  @@index([stockTakeId])
 }

@@ -3,15 +3,17 @@ import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Package, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Settings, ClipboardList } from "lucide-react";
 import { createLogger } from "@/lib/logger";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const log = createLogger("layout:tenant");
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/products", label: "Products", icon: Package },
+  { href: "/stock-take", label: "Stock Take", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -74,10 +76,11 @@ export default async function TenantLayout({
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-2 pl-2 border-l border-dashed">
+          <div className="flex items-center gap-1 pl-2 border-l">
             <span className="hidden sm:block text-[11px] font-sans text-muted-foreground max-w-28 truncate">
               {session.user.email}
             </span>
+            <ThemeToggle />
             <SignOutButton />
           </div>
         </div>

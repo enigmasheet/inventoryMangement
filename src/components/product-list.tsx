@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, TrendingUp } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 type ProductRow = {
   id: string;
@@ -35,8 +35,8 @@ export function ProductList({ tenantSlug, products }: Props) {
   const router = useRouter();
 
   return (
-    <div className="border bg-card">
-      <Table>
+    <div className="overflow-x-auto border bg-card">
+      <Table className="min-w-[600px]">
         <TableHeader>
           <TableRow>
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Name</TableHead>
@@ -65,23 +65,19 @@ export function ProductList({ tenantSlug, products }: Props) {
             const profit = price - cost;
             const profitMargin = price > 0 ? ((profit / price) * 100) : 0;
 
-            let statusLabel: string;
-            let statusClasses: string;
-            let dotClass: string;
+    let statusLabel: string;
+    let statusClasses: string;
 
-            if (isOut) {
-              statusLabel = "Out";
-              statusClasses = "tag-flag bg-destructive/10 text-destructive border border-destructive/20";
-              dotClass = "tag-dot bg-destructive";
-            } else if (isLow) {
-              statusLabel = "Low";
-              statusClasses = "tag-flag bg-warning/10 text-warning border border-warning/20";
-              dotClass = "tag-dot bg-warning";
-            } else {
-              statusLabel = "OK";
-              statusClasses = "tag-flag bg-success/10 text-success border border-success/20";
-              dotClass = "tag-dot bg-success";
-            }
+    if (isOut) {
+      statusLabel = "Out";
+      statusClasses = "bg-destructive/10 text-destructive";
+    } else if (isLow) {
+      statusLabel = "Low";
+      statusClasses = "bg-warning/10 text-warning";
+    } else {
+      statusLabel = "OK";
+      statusClasses = "bg-success/10 text-success";
+    }
 
             return (
               <TableRow key={p.id} className="group">
@@ -108,8 +104,8 @@ export function ProductList({ tenantSlug, products }: Props) {
                   <span className="font-sans text-[10px] text-muted-foreground ml-0.5">{p.unit}</span>
                 </TableCell>
                 <TableCell>
-                  <span className={statusClasses}>
-                    <span className={dotClass} />
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-heading font-bold uppercase tracking-wider ${statusClasses}`}>
+                    <span className={`size-1.5 rounded-full ${isOut ? "bg-destructive" : isLow ? "bg-warning" : "bg-success"}`} />
                     {statusLabel}
                   </span>
                 </TableCell>
@@ -128,7 +124,7 @@ export function ProductList({ tenantSlug, products }: Props) {
                       size="sm"
                       onClick={async () => {
                         if (confirm("Delete this product?")) {
-                          const result = await deleteProduct(p.id);
+                          const result = await deleteProduct(p.id, tenantSlug);
                           if (result?.error) {
                             toast.error(result.error);
                           } else {

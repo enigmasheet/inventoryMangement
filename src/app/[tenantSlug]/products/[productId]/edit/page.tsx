@@ -20,7 +20,7 @@ export default async function EditProductPage({
   });
   if (!tenant) redirect("/");
 
-  const product = await prisma.product.findFirst({
+  const rawProduct = await prisma.product.findFirst({
     where: { id: productId, tenantId: tenant.id },
     include: {
       attributes: {
@@ -28,7 +28,13 @@ export default async function EditProductPage({
       },
     },
   });
-  if (!product) notFound();
+  if (!rawProduct) notFound();
+
+  const product = {
+    ...rawProduct,
+    unitPrice: Number(rawProduct.unitPrice),
+    costPrice: Number(rawProduct.costPrice),
+  };
 
   const attrDefs = await prisma.attributeDefinition.findMany({
     where: { tenantId: tenant.id },

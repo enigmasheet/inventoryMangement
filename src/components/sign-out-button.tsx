@@ -4,9 +4,9 @@ import { createAuthClient } from "better-auth/react";
 import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const authClient = createAuthClient({
-  baseURL: "http://localhost:3000",
-});
+const baseURL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+const authClient = createAuthClient({ baseURL });
 
 export function SignOutButton({ className }: { className?: string }) {
   return (

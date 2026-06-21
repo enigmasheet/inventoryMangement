@@ -3,18 +3,22 @@ import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Package, Plus, Search } from "lucide-react";
+import { Plus, Search, Download } from "lucide-react";
 import { ProductList } from "@/components/product-list";
+import { ProductPagination } from "@/components/product-pagination";
+
+const PER_PAGE = 20;
 
 export default async function ProductsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ tenantSlug: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   const { tenantSlug } = await params;
-  const { q } = await searchParams;
+  const { q, page } = await searchParams;
+  const currentPage = Math.max(1, Number(page) || 1);
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user.tenantId) redirect("/");
 
@@ -35,10 +39,23 @@ export default async function ProductsPage({
       : {}),
   };
 
-  const products = await prisma.product.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-  });
+  const [rawProducts, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (currentPage - 1) * PER_PAGE,
+      take: PER_PAGE,
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  const products = rawProducts.map((p) => ({
+    ...p,
+    unitPrice: Number(p.unitPrice),
+    costPrice: Number(p.costPrice),
+  }));
+
+  const totalPages = Math.ceil(total / PER_PAGE);
 
   return (
     <div className="space-y-6">
@@ -48,16 +65,26 @@ export default async function ProductsPage({
             Products
           </h1>
           <span className="text-[11px] font-mono text-muted-foreground" data-number>
-            {products.length}
+            {total}
           </span>
         </div>
-        <Link
-          href={`/${tenantSlug}/products/new`}
-          className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
-        >
-          <Plus className="size-3.5" />
-          New Product
-        </Link>
+        <div className="flex items-center gap-2">
+          <a
+            download
+            href={`/api/export/products/${tenantSlug}`}
+            className="inline-flex items-center gap-1.5 border bg-card px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <Download className="size-3.5" />
+            <span className="hidden sm:inline">CSV</span>
+          </a>
+          <Link
+            href={`/${tenantSlug}/products/new`}
+            className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
+          >
+            <Plus className="size-3.5" />
+            New Product
+          </Link>
+        </div>
       </div>
 
       <form className="relative">
@@ -71,6 +98,13 @@ export default async function ProductsPage({
       </form>
 
       <ProductList tenantSlug={tenantSlug} products={products} />
+
+      <ProductPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        basePath={`/${tenantSlug}/products`}
+        searchQuery={q ?? ""}
+      />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AttributeDefForm } from "@/components/attribute-def-form";
 import { AttributeDefEditDialog } from "@/components/attribute-def-edit-dialog";
-import { deleteAttribute } from "@/app/actions/attributes";
+import { deleteAttributeAction } from "@/app/actions/attributes";
 import { Button } from "@/components/ui/button";
 import { Sliders, Trash2 } from "lucide-react";
 
@@ -57,7 +57,7 @@ export default async function SettingsPage({
                 </div>
                 <div className="flex items-center gap-1">
                   <AttributeDefEditDialog def={def} />
-                  <form action={deleteAttribute.bind(null, def.id)}>
+                  <form action={deleteAttributeAction.bind(null, def.id)}>
                     <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
                       <Trash2 className="size-3.5" />
                     </Button>
@@ -68,7 +68,7 @@ export default async function SettingsPage({
           </div>
         </div>
       ) : (
-        <div className="border border-dashed p-12 text-center space-y-4 bg-card">
+        <div className="rounded-lg border bg-card p-12 text-center space-y-4">
           <Sliders className="size-10 mx-auto text-muted-foreground/50" />
           <div className="space-y-1">
             <p className="font-sans font-semibold">No custom fields yet</p>

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
 
@@ -65,15 +66,19 @@ export async function createProduct(
     }
   }
 
-  await prisma.product.create({
-    data: {
-      tenantId: tenant.id,
-      ...parsed.data,
-      attributes: { create: attrs },
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.product.create({
+      data: {
+        tenantId: tenant.id,
+        ...parsed.data,
+        attributes: { create: attrs },
+      },
+    });
   });
 
   log.info("product created", { name: parsed.data.name, sku: parsed.data.sku });
+  revalidatePath(`/${tenantSlug}/products`);
+  revalidatePath(`/${tenantSlug}/dashboard`);
   redirect(`/${tenantSlug}/products`);
 }
 
@@ -135,7 +140,7 @@ export async function updateProduct(
   redirect(`/${tenantSlug}/products`);
 }
 
-export async function deleteProduct(productId: string): Promise<{ error?: string } | null> {
+export async function deleteProduct(productId: string, tenantSlug: string): Promise<{ error?: string } | null> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user.tenantId) {
     log.warn("deleteProduct rejected — no session");
@@ -157,5 +162,7 @@ export async function deleteProduct(productId: string): Promise<{ error?: string
   ]);
 
   log.info("product deleted", { productId, name: product.name });
+  revalidatePath(`/${tenantSlug}/products`);
+  revalidatePath(`/${tenantSlug}/dashboard`);
   return null;
 }

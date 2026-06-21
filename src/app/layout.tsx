@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Barlow_Condensed, Work_Sans, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -24,6 +25,10 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "StockPilot — Inventory Management",
   description: "Multitenant inventory management for small shop owners",
+  manifest: "/manifest.json",
+  other: {
+    "theme-color": "#0a0a0a",
+  },
 };
 
 export default function RootLayout({
@@ -35,17 +40,36 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${barlow.variable} ${workSans.variable} ${jetbrains.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <meta name="theme-color" content="#0a0a0a" />
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function() {
+            var t = localStorage.getItem("theme");
+            if (t !== "light") document.documentElement.classList.add("dark");
+          })();`}
+        </Script>
+      </head>
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster
           position="top-right"
           toastOptions={{
             style: {
-              border: "1px dashed var(--border)",
-              borderRadius: 0,
               fontFamily: "var(--font-body)",
             },
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
           }}
         />
       </body>

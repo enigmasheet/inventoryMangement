@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
 
@@ -47,6 +48,11 @@ export async function createAttribute(
   }
 
   log.info("attribute definition created", { key: parsed.data.key, label: parsed.data.label });
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.user.tenantId },
+    select: { slug: true },
+  });
+  if (tenant) revalidatePath(`/${tenant.slug}/settings`);
   return null;
 }
 
@@ -93,14 +99,19 @@ export async function updateAttribute(
   }
 
   log.info("attribute definition updated", { attributeId, key: parsed.data.key });
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.user.tenantId! },
+    select: { slug: true },
+  });
+  if (tenant) revalidatePath(`/${tenant.slug}/settings`);
   return null;
 }
 
-export async function deleteAttribute(attributeId: string) {
+async function _deleteAttribute(attributeId: string): Promise<{ error?: string } | null> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user.tenantId) {
     log.warn("deleteAttribute rejected — no session");
-    throw new Error("Unauthorized");
+    return { error: "Unauthorized" };
   }
 
   const def = await prisma.attributeDefinition.findFirst({
@@ -108,7 +119,7 @@ export async function deleteAttribute(attributeId: string) {
   });
   if (!def) {
     log.warn("deleteAttribute rejected — not found in tenant scope", { attributeId });
-    throw new Error("Not found");
+    return { error: "Not found" };
   }
 
   await prisma.$transaction([
@@ -119,4 +130,14 @@ export async function deleteAttribute(attributeId: string) {
   ]);
 
   log.info("attribute definition deleted", { attributeId, key: def.key });
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.user.tenantId! },
+    select: { slug: true },
+  });
+  if (tenant) revalidatePath(`/${tenant.slug}/settings`);
+  return null;
+}
+
+export async function deleteAttributeAction(attributeId: string): Promise<void> {
+  await _deleteAttribute(attributeId);
 }
