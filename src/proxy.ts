@@ -4,9 +4,11 @@ import { createLogger } from "@/lib/logger";
 
 const log = createLogger("proxy");
 
+const STATIC_SKIP = ["/_next", "/api/", "/sw.js", "/manifest.json", "/icons/"];
+
 export default async function proxy(request: Request) {
   const url = new URL(request.url);
-  if (url.pathname.startsWith("/_next") || url.pathname.startsWith("/api/")) return NextResponse.next();
+  if (STATIC_SKIP.some((p) => url.pathname.startsWith(p))) return NextResponse.next();
 
   const session = await auth.api.getSession({ headers: request.headers });
   if (!session) {

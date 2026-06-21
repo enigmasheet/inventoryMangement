@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { CreateShopForm } from "@/components/create-shop-form";
-import { Store } from "lucide-react";
+import { Store, ArrowLeft } from "lucide-react";
 
 export default async function CreateShopPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -15,6 +16,7 @@ export default async function CreateShopPage() {
     const { prisma } = await import("@/lib/db");
     const tenant = await prisma.tenant.findUnique({
       where: { id: session.user.tenantId },
+      select: { slug: true },
     });
     if (tenant) {
       redirect(`/${tenant.slug}/dashboard`);
@@ -24,6 +26,13 @@ export default async function CreateShopPage() {
   return (
     <div className="flex flex-1 items-center justify-center p-4 bg-background">
       <div className="w-full max-w-md space-y-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-xs font-heading font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="size-3" />
+          Back
+        </Link>
         <div className="text-center space-y-3">
           <div className="size-10 flex items-center justify-center bg-primary text-primary-foreground mx-auto font-heading text-sm font-bold tracking-wider">
             <Store className="size-5" />
