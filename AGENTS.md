@@ -4,7 +4,7 @@
 - Next.js 16 (App Router, Turbopack default)
 - Better Auth (Google OAuth) — NOT Auth.js/NextAuth
 - Prisma 7 with `@prisma/adapter-pg` driver adapter
-- PostgreSQL 17 (Docker: `docker compose up -d`)
+- PostgreSQL 17 (Neon: cloud-hosted)
 - Tailwind CSS v4 + shadcn/ui
 - Zod for validation
 - Vitest for tests (Phase 5)
@@ -63,7 +63,6 @@ proxy.ts alone is NOT sufficient (CVE-2025-29927). Every layer independently enf
 pnpm dev                             # Next.js dev server
 pnpm prisma migrate dev --name <name> # schema migration
 pnpm prisma studio                   # DB browser
-docker compose up -d                 # start Postgres
 pnpm dlx shadcn@latest add <component> # add shadcn/ui components
 pnpm dlx @better-auth/cli generate   # sync Better Auth schema
 pnpm eslint .                        # lint (no next lint)
@@ -92,7 +91,6 @@ Phases are strictly sequential: 0 → 1 → 2 → 3 → 4 → 5. Do not skip pha
 - Phase 5: Testing, Hardening & Deployment
 
 ### Blocked
-- Docker PostgreSQL must be started (`docker compose up -d`) before running; port 5433, user `invuser`/`invpass`, database `inventory`
 - Google OAuth credentials exist in `.env`; full end-to-end sign-in flow needs manual testing
 - Better Auth CLI has version mismatch with `better-call`; Session/Account/Verification models were hand-written as a workaround
 

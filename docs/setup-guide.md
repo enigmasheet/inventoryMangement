@@ -10,7 +10,7 @@ A complete walkthrough from zero to running application.
 |---|---|---|
 | Node.js | 20.9+ | Runtime (required by Next.js 16) |
 | pnpm | 9+ | Package manager |
-| Docker Desktop | Latest | Local PostgreSQL |
+| — | — | PostgreSQL via Neon (cloud) |
 | Git | Latest | Version control |
 | Google Cloud account | Free | OAuth credentials |
 
@@ -28,41 +28,7 @@ This installs all dependencies including Prisma 7, Better Auth, shadcn/ui, Zod, 
 
 ---
 
-## Step 2: Start PostgreSQL
-
-```sh
-docker compose up -d
-```
-
-This creates a PostgreSQL 17 container (`inventory-db`) on port **5433** with:
-- User: `invuser`
-- Password: `invpass`
-- Database: `inventory`
-- Persistent volume: `pgdata` (survives container restarts)
-
-### Verify
-
-```sh
-docker compose ps
-# Should show "inventory-db" as "Up (healthy)"
-```
-
-### Health Check
-
-The Docker Compose file includes a health check:
-```yaml
-healthcheck:
-  test: ["CMD-SHELL", "pg_isready -U invuser -d inventory"]
-  interval: 5s
-  timeout: 5s
-  retries: 5
-```
-
-Wait until the container reports "healthy" before running migrations.
-
----
-
-## Step 3: Configure Environment
+## Step 2: Configure Environment
 
 ```sh
 cp .env.example .env
@@ -71,7 +37,7 @@ cp .env.example .env
 Edit `.env` with your values:
 
 ```env
-DATABASE_URL=postgresql://invuser:invpass@localhost:5433/inventory
+DATABASE_URL=postgresql://user:pass@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
 
 GOOGLE_CLIENT_ID=xxxxxxxxxx.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxx

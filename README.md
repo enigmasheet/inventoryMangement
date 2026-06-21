@@ -9,7 +9,7 @@ Built as a final year project.
 | Layer | Choice |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Database | PostgreSQL 17 (Docker local, Neon/Supabase for prod) |
+| Database | PostgreSQL 17 (Neon: cloud-hosted) |
 | ORM | Prisma 7 with `@prisma/adapter-pg` |
 | Auth | Better Auth (Google OAuth) |
 | Styling | Tailwind CSS v4 + shadcn/ui |
@@ -36,19 +36,10 @@ Built as a final year project.
 
 - **Node.js** 20.9+
 - **pnpm** — `npm install -g pnpm`
-- **Docker Desktop** — for local PostgreSQL
 
 ## Getting Started
 
-### 1. Start PostgreSQL
-
-```sh
-docker compose up -d
-```
-
-This starts PostgreSQL 17 on port **5433** with user `invuser` / `invpass` and database `inventory`.
-
-### 2. Install dependencies
+### 1. Install dependencies
 
 ```sh
 pnpm install
@@ -63,7 +54,7 @@ cp .env.example .env
 ```
 
 Required variables in `.env`:
-- `DATABASE_URL` — `postgresql://invuser:invpass@localhost:5433/inventory`
+- `DATABASE_URL` — your Neon PostgreSQL connection string
 - `GOOGLE_CLIENT_ID` — from Google Cloud Console
 - `GOOGLE_CLIENT_SECRET` — from Google Cloud Console
 - `BETTER_AUTH_SECRET` — generate with `openssl rand -hex 32`
@@ -104,7 +95,7 @@ Open [http://localhost:3000](http://localhost:3000). Sign in with Google, then c
 | `pnpm seed` | Seed demo data |
 | `pnpm prisma studio` | Open Prisma Studio (DB browser) |
 | `pnpm prisma migrate dev --name <name>` | Create a new migration |
-| `docker compose up -d` | Start PostgreSQL |
+| `pnpm next build` | Start PostgreSQL |
 
 ## Architecture
 
