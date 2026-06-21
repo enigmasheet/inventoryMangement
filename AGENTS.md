@@ -70,6 +70,7 @@ pnpm next typegen                    # generate PageProps/LayoutProps types
 pnpm next build                      # production build (Turbopack)
 pnpm test                            # run Vitest isolation tests
 pnpm seed                            # seed demo data (Liquor Shop + Bicycle Shop)
+pnpm prisma generate                 # regenerate Prisma client after schema changes
 ```
 
 ## Build Order
