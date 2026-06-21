@@ -7,12 +7,9 @@ import { createAttribute } from "@/app/actions/attributes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ATTRIBUTE_TYPES } from "@/lib/constants";
 
-const types = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "date", label: "Date" },
-];
+const types = ATTRIBUTE_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }));
 
 export function AttributeDefForm() {
   const [state, formAction, pending] = useActionState(createAttribute, null);

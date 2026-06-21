@@ -7,8 +7,7 @@ import type { AttributeDefinition, Product, ProductAttributeValue } from "@/gene
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const units = ["pcs", "kg", "ltr", "bottle", "pack", "box", "bag", "dozen"] as const;
+import { PRODUCT_UNITS } from "@/lib/constants";
 
 type SerializedProduct = Omit<Product, "unitPrice" | "costPrice"> & {
   unitPrice: number;
@@ -107,7 +106,7 @@ export function ProductForm({ attributeDefs, product, action }: Props) {
               defaultValue={product?.unit ?? "pcs"}
               className="flex h-9 w-full bg-background border px-2.5 py-1.5 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              {units.map((u) => (
+              {PRODUCT_UNITS.map((u) => (
                 <option key={u} value={u}>{u}</option>
               ))}
             </select>

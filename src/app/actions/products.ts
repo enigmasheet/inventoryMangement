@@ -7,10 +7,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
+import { PRODUCT_UNITS } from "@/lib/constants";
 
 const log = createLogger("actions:products");
-
-const units = ["pcs", "kg", "ltr", "bottle", "pack", "box", "bag", "dozen"] as const;
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
@@ -19,7 +18,7 @@ const productSchema = z.object({
   costPrice: z.coerce.number().min(0).default(0),
   quantity: z.coerce.number().int().min(0).default(0),
   lowStockLimit: z.coerce.number().int().min(0).default(5),
-  unit: z.enum(units).default("pcs"),
+  unit: z.enum(PRODUCT_UNITS).default("pcs"),
 });
 
 function extractFormData(formData: FormData) {
@@ -77,8 +76,6 @@ export async function createProduct(
   });
 
   log.info("product created", { name: parsed.data.name, sku: parsed.data.sku });
-  revalidatePath(`/${tenantSlug}/products`);
-  revalidatePath(`/${tenantSlug}/dashboard`);
   redirect(`/${tenantSlug}/products`);
 }
 

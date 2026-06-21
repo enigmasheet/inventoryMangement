@@ -2,8 +2,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Package, AlertTriangle, DollarSign, TrendingUp, ArrowUpRight, CalendarClock, ClipboardList } from "lucide-react";
+import { Package, AlertTriangle, DollarSign, TrendingUp } from "lucide-react";
+import { MetricCard } from "@/components/dashboard/metric-card";
+import { StockTakeCard } from "@/components/dashboard/stock-take-card";
+import { ExpiringProducts } from "@/components/dashboard/expiring-products";
+import { LowStockProducts } from "@/components/dashboard/low-stock-products";
+import { DashboardEmptyState } from "@/components/dashboard/empty-state";
 
 export default async function DashboardPage({
   params,
@@ -74,167 +78,48 @@ export default async function DashboardPage({
     `,
   ]);
 
-  const cards = [
-    {
-      label: "Total Products",
-      value: productCount,
-      icon: Package,
-      color: "text-primary",
-    },
-    {
-      label: "Low Stock Items",
-      value: lowStockCount,
-      icon: AlertTriangle,
-      color: "text-warning",
-    },
-    {
-      label: "Stock Value",
-      value: `रू${Number(stockValue ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      icon: DollarSign,
-      color: "text-success",
-    },
-    {
-      label: "Total Profit",
-      value: `रू${Number(totalProfit ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      icon: TrendingUp,
-      color: "text-primary",
-    },
-  ];
+  const formatCurrency = (v: string | null) =>
+    `रू${Number(v ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3">
-        <h1 className="font-heading font-bold text-lg tracking-wider uppercase">
-          Dashboard
-        </h1>
-        <span className="text-[11px] font-sans text-muted-foreground">
-          {session.user.name}
-        </span>
+        <h1 className="font-heading font-bold text-lg tracking-wider uppercase">Dashboard</h1>
+        <span className="text-[11px] font-sans text-muted-foreground">{session.user.name}</span>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((card) => (
-          <div
-            key={card.label}
-            className="rounded-lg border bg-card p-5 hover:shadow-sm transition-shadow"
-          >
-            <p className="font-heading font-bold text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
-              {card.label}
-            </p>
-            <div className="flex items-end justify-between">
-              <p className="font-mono text-2xl font-semibold tracking-tight" data-number>
-                {card.value}
-              </p>
-              <card.icon className={`size-5 ${card.color} opacity-50`} />
-            </div>
-          </div>
-        ))}
-        {activeStockTake && (
-          <Link
-            href={`/${tenantSlug}/stock-take/${activeStockTake.id}`}
-            className="rounded-lg border-2 border-warning bg-warning/5 p-5 hover:shadow-sm transition-shadow"
-          >
-            <p className="font-heading font-bold text-[11px] uppercase tracking-wider text-warning mb-2 flex items-center gap-1.5">
-              <ClipboardList className="size-3.5" />
-              Active Stock Take
-            </p>
-            <p className="font-mono text-xs" data-number>
-              Started {new Date(activeStockTake.createdAt).toLocaleDateString()}
-            </p>
-          </Link>
-        )}
-        {!activeStockTake && (
-          <Link
-            href={`/${tenantSlug}/stock-take`}
-            className="rounded-lg border bg-card p-5 hover:shadow-sm transition-shadow"
-          >
-            <p className="font-heading font-bold text-[11px] uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              <ClipboardList className="size-3.5" />
-              New Stock Take
-            </p>
-            <p className="font-mono text-xs text-muted-foreground" data-number>
-              Start counting inventory
-            </p>
-          </Link>
-        )}
+        <MetricCard
+          label="Total Products"
+          value={productCount}
+          icon={<Package className="size-5" />}
+          color="text-primary"
+        />
+        <MetricCard
+          label="Low Stock Items"
+          value={lowStockCount}
+          icon={<AlertTriangle className="size-5" />}
+          color="text-warning"
+        />
+        <MetricCard
+          label="Stock Value"
+          value={formatCurrency(stockValue)}
+          icon={<DollarSign className="size-5" />}
+          color="text-success"
+        />
+        <MetricCard
+          label="Total Profit"
+          value={formatCurrency(totalProfit)}
+          icon={<TrendingUp className="size-5" />}
+          color="text-primary"
+        />
+        <StockTakeCard tenantSlug={tenantSlug} activeStockTake={activeStockTake} />
       </div>
 
-      {expiringProducts.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="font-heading font-bold text-xs uppercase tracking-wider text-accent flex items-center gap-2">
-            <CalendarClock className="size-4" />
-            Expiring Soon
-          </h2>
-          <div className="border divide-y bg-card">
-            {expiringProducts.map((p) => (
-              <Link
-                key={p.id}
-                href={`/${tenantSlug}/products/${p.id}`}
-                className="flex items-center justify-between px-4 py-3 hover:bg-muted transition-colors group/link"
-              >
-                <div>
-                  <p className="font-sans text-sm font-medium group-hover/link:text-primary transition-colors">{p.name}</p>
-                  <p className="text-xs font-mono text-muted-foreground" data-number>{p.sku}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <p className="font-mono text-sm font-semibold text-accent" data-number>
-                    {new Date(p.expiryDate).toLocaleDateString()}
-                  </p>
-                  <ArrowUpRight className="size-3.5 text-muted-foreground/50 opacity-0 group-hover/link:opacity-100 transition-opacity" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
+      <ExpiringProducts tenantSlug={tenantSlug} products={expiringProducts} />
+      <LowStockProducts tenantSlug={tenantSlug} products={lowStockProducts} />
 
-      {lowStockProducts.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="font-heading font-bold text-xs uppercase tracking-wider text-warning flex items-center gap-2">
-            <AlertTriangle className="size-4" />
-            Low Stock Products
-          </h2>
-          <div className="border divide-y bg-card">
-            {lowStockProducts.map((p) => (
-              <Link
-                key={p.id}
-                href={`/${tenantSlug}/products/${p.id}`}
-                className="flex items-center justify-between px-4 py-3 hover:bg-muted transition-colors group/link"
-              >
-                <div>
-                  <p className="font-sans text-sm font-medium group-hover/link:text-primary transition-colors">{p.name}</p>
-                  <p className="text-xs font-mono text-muted-foreground" data-number>{p.sku}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="font-mono text-sm font-semibold text-warning" data-number>{p.quantity} <span className="font-sans text-xs font-normal">{p.unit}</span></p>
-                    <p className="text-[10px] font-sans text-muted-foreground">limit {p.lowStockLimit}</p>
-                  </div>
-                  <ArrowUpRight className="size-3.5 text-muted-foreground/50 opacity-0 group-hover/link:opacity-100 transition-opacity" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {productCount === 0 && (
-        <div className="rounded-lg border bg-card p-14 text-center space-y-4">
-          <Package className="size-10 mx-auto text-muted-foreground/50" />
-          <div className="space-y-1">
-            <p className="font-sans font-semibold">No products yet</p>
-            <p className="text-sm font-sans text-muted-foreground">
-              Add your first product to start tracking inventory.
-            </p>
-          </div>
-          <Link
-            href={`/${tenantSlug}/products/new`}
-            className="inline-flex items-center justify-center bg-accent text-accent-foreground px-4 py-2 text-sm font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
-          >
-            Add Product
-          </Link>
-        </div>
-      )}
+      {productCount === 0 && <DashboardEmptyState tenantSlug={tenantSlug} />}
     </div>
   );
 }

@@ -13,13 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ATTRIBUTE_TYPES } from "@/lib/constants";
 import { Pencil } from "lucide-react";
 
-const types = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "date", label: "Date" },
-];
+const types = ATTRIBUTE_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }));
 
 type Props = {
   def: { id: string; key: string; label: string; type: string };

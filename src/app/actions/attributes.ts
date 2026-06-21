@@ -6,13 +6,14 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
+import { ATTRIBUTE_TYPES } from "@/lib/constants";
 
 const log = createLogger("actions:attributes");
 
 const createAttributeSchema = z.object({
   key: z.string().min(1).max(50),
   label: z.string().min(1).max(100),
-  type: z.enum(["text", "number", "date"]),
+  type: z.enum(ATTRIBUTE_TYPES),
 });
 
 export async function createAttribute(

@@ -6,11 +6,12 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
+import { MOVEMENT_TYPES } from "@/lib/constants";
 
 const log = createLogger("actions:stock");
 
 const movementSchema = z.object({
-  type: z.enum(["IN", "OUT"]),
+  type: z.enum(MOVEMENT_TYPES),
   quantity: z.coerce.number().int().positive("Quantity must be positive"),
   note: z.string().max(500).optional(),
 });
