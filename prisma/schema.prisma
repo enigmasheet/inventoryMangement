@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  shopName  String
+  category  String
+  currency  String   @default("रू")
+  createdAt DateTime @default(now())
+  users     User[]
+  products  Product[]
+  attributeDefs AttributeDefinition[]
+  stockMovements StockMovement[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  tenantId      String?
+  tenant        Tenant?   @relation(fields: [tenantId], references: [id])
+  email         String    @unique
+  name          String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  token        String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Account {
+  id              String  @id @default(cuid())
+  userId          String
+  user            User    @relation(fields: [userId], references: [id])
+  accountId       String
+  providerId      String
+  accessToken     String?
+  refreshToken    String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope           String?
+  idToken         String?
+  password        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AttributeDefinition {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  key       String
+  label     String
+  type      String
+  products  ProductAttributeValue[]
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  name          String
+  sku           String
+  unitPrice     Decimal
+  costPrice     Decimal  @default(0)
+  quantity      Int      @default(0)
+  lowStockLimit Int      @default(5)
+  unit          String   @default("pcs")
+  createdAt     DateTime @default(now())
+  attributes    ProductAttributeValue[]
+  movements     StockMovement[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId])
+}
+
+model ProductAttributeValue {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id])
+  attributeDefId String
+  attributeDef   AttributeDefinition @relation(fields: [attributeDefId], references: [id])
+  value          String
+
+  @@index([productId])
+}
+
+model StockMovement {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  type      String
+  quantity  Int
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, productId])
+}

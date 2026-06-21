@@ -1,0 +1,137 @@
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Package, ArrowLeft, Edit3, Hash, Tag, DollarSign, Layers, Archive, TrendingUp, TrendingDown } from "lucide-react";
+import { StockMovementForm } from "@/components/stock-movement-form";
+import { StockMovementList } from "@/components/stock-movement-list";
+
+export default async function ProductDetailPage({
+  params,
+}: {
+  params: Promise<{ tenantSlug: string; productId: string }>;
+}) {
+  const { tenantSlug, productId } = await params;
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user.tenantId) redirect("/");
+
+  const tenant = await prisma.tenant.findFirst({
+    where: { slug: tenantSlug, id: session.user.tenantId },
+  });
+  if (!tenant) redirect("/");
+
+  const product = await prisma.product.findFirst({
+    where: { id: productId, tenantId: tenant.id },
+    include: {
+      attributes: {
+        include: { attributeDef: { select: { label: true, type: true } } },
+      },
+      movements: { orderBy: { createdAt: "desc" }, take: 50 },
+    },
+  });
+  if (!product) notFound();
+
+  const isLow = product.quantity <= product.lowStockLimit;
+  const isOut = product.quantity === 0;
+  const price = Number(product.unitPrice);
+  const cost = Number(product.costPrice);
+  const profit = price - cost;
+  const profitMargin = price > 0 ? ((profit / price) * 100) : 0;
+
+  let statusLabel: string;
+  let statusClasses: string;
+  if (isOut) {
+    statusLabel = "Out of Stock";
+    statusClasses = "tag-flag bg-destructive/10 text-destructive border border-destructive/20";
+  } else if (isLow) {
+    statusLabel = "Low Stock";
+    statusClasses = "tag-flag bg-warning/10 text-warning border border-warning/20";
+  } else {
+    statusLabel = "In Stock";
+    statusClasses = "tag-flag bg-success/10 text-success border border-success/20";
+  }
+
+  const infoItems = [
+    { icon: Hash, label: "SKU", value: product.sku, mono: true },
+    { icon: DollarSign, label: "Selling Price", value: `रू${price.toFixed(2)}`, mono: true },
+    { icon: TrendingDown, label: "Cost Price", value: `रू${cost.toFixed(2)}`, mono: true },
+    { icon: TrendingUp, label: "Profit Margin", value: `${profitMargin.toFixed(1)}%`, mono: true, valueClass: profit >= 0 ? "text-success" : "text-destructive" },
+    { icon: Layers, label: "Quantity", value: `${product.quantity} ${product.unit}`, mono: true },
+    { icon: Archive, label: "Low Stock Limit", value: product.lowStockLimit.toString(), mono: true },
+  ];
+
+  return (
+    <div className="space-y-8 max-w-4xl">
+      <div>
+        <Link
+          href={`/${tenantSlug}/products`}
+          className="inline-flex items-center gap-1 text-xs font-heading font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-3"
+        >
+          <ArrowLeft className="size-3.5" />
+          Products
+        </Link>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="size-10 flex items-center justify-center bg-primary/10">
+              <Package className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-heading font-bold text-xl tracking-wider uppercase">{product.name}</h1>
+              <span className={statusClasses}>
+                <span className="tag-dot" />
+                {statusLabel}
+              </span>
+            </div>
+          </div>
+          <Link
+            href={`/${tenantSlug}/products/${productId}/edit`}
+            className="inline-flex items-center gap-1.5 border bg-card px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:bg-muted transition-colors shrink-0"
+          >
+            <Edit3 className="size-3.5" />
+            Edit
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {infoItems.map((item) => (
+          <div key={item.label} className="border bg-card p-4 space-y-1.5">
+            <div className="flex items-center gap-2 text-[11px] font-heading font-bold uppercase tracking-wider text-muted-foreground">
+              <item.icon className="size-3.5" />
+              {item.label}
+            </div>
+            <p className={`font-mono text-base font-semibold ${item.valueClass ?? ""}`} data-number>
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {product.attributes.length > 0 && (
+        <div className="border bg-card p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Tag className="size-3.5 text-primary" />
+            <h3 className="font-heading font-bold text-xs uppercase tracking-wider">Custom Attributes</h3>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {product.attributes.map((a) => (
+              <div key={a.id} className="flex items-center gap-2 bg-muted px-3 py-2 text-sm font-sans">
+                <span className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">{a.attributeDef.label}:</span>
+                <span>{a.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <StockMovementForm tenantSlug={tenantSlug} productId={productId} />
+
+      <div className="space-y-4">
+        <h2 className="font-heading font-bold text-xs uppercase tracking-wider text-muted-foreground">Movement History</h2>
+        <StockMovementList movements={product.movements} />
+      </div>
+    </div>
+  );
+}

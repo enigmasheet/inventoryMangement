@@ -1,0 +1,16 @@
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.17.144.1:3000
+- Environments: .env
+✓ Ready in 642ms
+
+  Reload env: .env
+  Reload env: .env
+✓ Compiled in 83ms
+✓ Compiled in 262ms
+✓ Compiled in 271ms
+✓ Compiled in 608ms
+✓ Compiled in 354ms
+✓ Compiled in 685ms
+[?25h
+[ELIFECYCLE] Command failed with exit code 1.
