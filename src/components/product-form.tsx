@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useActionState, useRef } from "react";
+import { useEffect, useActionState, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ type Props = {
 export function ProductForm({ tenantSlug, currency, attributeDefs, product, action }: Props) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const submittedRef = useRef(false);
 
   useEffect(() => {
@@ -41,26 +42,64 @@ export function ProductForm({ tenantSlug, currency, attributeDefs, product, acti
       toast.success(product ? "Product updated" : "Product created");
       submittedRef.current = false;
     }
+    if (state?.error) {
+      toast.error(state.error);
+    }
   }, [state, product]);
 
   const getAttrValue = (defId: string) =>
     product?.attributes?.find((a) => a.attributeDefId === defId)?.value ?? "";
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const errors: Record<string, string> = {};
+
+    const name = (data.get("name") as string)?.trim();
+    if (!name) errors.name = "Name is required";
+
+    const sku = (data.get("sku") as string)?.trim();
+    if (!sku) errors.sku = "SKU is required";
+
+    const unitPrice = data.get("unitPrice") as string;
+    if (!unitPrice || Number(unitPrice) < 0) errors.unitPrice = "Valid selling price is required";
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+    formAction(data);
+  };
+
   return (
-    <form action={formAction} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="border bg-card p-4 space-y-5">
         <h3 className="font-heading font-bold text-xs uppercase tracking-wider">Basic Details</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="name" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Product Name</Label>
-            <Input id="name" name="name" defaultValue={product?.name} required />
+            <Label htmlFor="name" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+              Product Name <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="name" name="name" defaultValue={product?.name} />
+            {fieldErrors.name && (
+              <p className="text-xs text-destructive">{fieldErrors.name}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="sku" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">SKU</Label>
-            <Input id="sku" name="sku" defaultValue={product?.sku} required />
+            <Label htmlFor="sku" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+              SKU <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="sku" name="sku" defaultValue={product?.sku} />
+            {fieldErrors.sku && (
+              <p className="text-xs text-destructive">{fieldErrors.sku}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="unitPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Selling Price ({currency})</Label>
+            <Label htmlFor="unitPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+              Selling Price ({currency}) <span className="text-destructive ml-0.5">*</span>
+            </Label>
             <Input
               id="unitPrice"
               name="unitPrice"
@@ -68,8 +107,10 @@ export function ProductForm({ tenantSlug, currency, attributeDefs, product, acti
               step="0.01"
               min="0"
               defaultValue={product?.unitPrice.toString() ?? "0"}
-              required
             />
+            {fieldErrors.unitPrice && (
+              <p className="text-xs text-destructive">{fieldErrors.unitPrice}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="costPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Cost Price ({currency})</Label>

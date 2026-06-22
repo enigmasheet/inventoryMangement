@@ -13,8 +13,11 @@ model Tenant {
   shopName       String
   category       String
   currency       String                @default("रू")
+  inviteCode     String?               @unique
+  createdById    String?
+  creator        User?                 @relation("UserCreatedTenants", fields: [createdById], references: [id])
   createdAt      DateTime              @default(now())
-  users          User[]
+  users          User[]                @relation("TenantMembers")
   products       Product[]
   attributeDefs  AttributeDefinition[]
   stockMovements StockMovement[]
@@ -22,17 +25,18 @@ model Tenant {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  tenantId      String?
-  tenant        Tenant?   @relation(fields: [tenantId], references: [id])
-  email         String    @unique
-  name          String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id             String    @id @default(cuid())
+  tenantId       String?
+  tenant         Tenant?   @relation("TenantMembers", fields: [tenantId], references: [id])
+  createdTenants Tenant[]  @relation("UserCreatedTenants")
+  email          String    @unique
+  name           String
+  emailVerified  Boolean   @default(false)
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  sessions       Session[]
+  accounts       Account[]
 }
 
 model Session {

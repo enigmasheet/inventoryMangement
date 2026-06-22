@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useActionState, useRef } from "react";
+import { useEffect, useActionState, useRef, useState } from "react";
 import { toast } from "sonner";
 import { updateStockTakeItem } from "@/app/actions/stock-take";
 import { Loader2 } from "lucide-react";
@@ -21,6 +21,7 @@ export function StockTakeItemRow({ tenantSlug, item, isActive }: Props) {
     updateStockTakeItem.bind(null, tenantSlug, item.id),
     null
   );
+  const [fieldError, setFieldError] = useState("");
   const submittedRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,10 +33,27 @@ export function StockTakeItemRow({ tenantSlug, item, isActive }: Props) {
     if (state === null && submittedRef.current) {
       toast.success("Count saved");
       submittedRef.current = false;
+      setFieldError("");
     } else if (state?.error) {
       toast.error(state.error);
     }
   }, [state]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const counted = data.get("countedQuantity") as string;
+    if (counted === "" || counted === undefined || counted === null) {
+      setFieldError("Count is required");
+      return;
+    }
+    if (Number(counted) < 0) {
+      setFieldError("Count must be 0 or more");
+      return;
+    }
+    setFieldError("");
+    formAction(data);
+  };
 
   const counted = item.countedQuantity;
   const diff = counted !== null ? counted - item.expectedQuantity : null;
@@ -52,25 +70,30 @@ export function StockTakeItemRow({ tenantSlug, item, isActive }: Props) {
       </td>
       <td className="px-4 py-3 text-right">
         {isActive ? (
-          <form action={formAction} className="inline-flex items-center gap-1">
-            <input
-              ref={inputRef}
-              name="countedQuantity"
-              type="number"
-              min="0"
-              defaultValue={item.countedQuantity ?? ""}
-              className="w-20 h-8 bg-background border px-2 py-1 text-sm font-mono text-right focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="—"
-              data-number
-            />
-            <button
-              type="submit"
-              disabled={pending}
-              className="px-2 py-1.5 text-xs font-heading font-bold uppercase tracking-wider bg-accent text-accent-foreground hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
-            >
-              {pending ? <Loader2 className="size-3 animate-spin" /> : "Save"}
-            </button>
-          </form>
+          <div className="inline-flex flex-col items-end gap-1">
+            <form onSubmit={handleSubmit} className="inline-flex items-center gap-1">
+              <input
+                ref={inputRef}
+                name="countedQuantity"
+                type="number"
+                min="0"
+                defaultValue={item.countedQuantity ?? ""}
+                className="w-20 h-8 bg-background border px-2 py-1 text-sm font-mono text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="—"
+                data-number
+              />
+              <button
+                type="submit"
+                disabled={pending}
+                className="px-2 py-1.5 text-xs font-heading font-bold uppercase tracking-wider bg-accent text-accent-foreground hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {pending ? <Loader2 className="size-3 animate-spin" /> : "Save"}
+              </button>
+            </form>
+            {fieldError && (
+              <p className="text-xs text-destructive whitespace-nowrap">{fieldError}</p>
+            )}
+          </div>
         ) : (
           <span className="font-mono text-sm" data-number>{counted ?? "—"}</span>
         )}

@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { SignInButton } from "@/components/sign-in-button";
-import { Package, TrendingUp, Bell, Settings, Store, ArrowRight, LayoutDashboard, BarChart3, Shield, Zap } from "lucide-react";
+import { Package, TrendingUp, Bell, Settings, Store, ArrowRight, LayoutDashboard, BarChart3, Shield, Zap, Users } from "lucide-react";
 
 const features = [
   {
@@ -60,13 +60,22 @@ export default async function HomePage() {
                 Dashboard
               </Link>
             ) : session?.user ? (
-              <Link
-                href="/create-shop"
-                className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
-              >
-                <Store className="size-3.5" />
-                Create Shop
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/join"
+                  className="inline-flex items-center gap-1.5 border bg-card px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:bg-muted transition-all"
+                >
+                  <Users className="size-3.5" />
+                  Join Shop
+                </Link>
+                <Link
+                  href="/create-shop"
+                  className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
+                >
+                  <Store className="size-3.5" />
+                  Create Shop
+                </Link>
+              </div>
             ) : null}
           </div>
         </div>
@@ -98,6 +107,23 @@ export default async function HomePage() {
                     Go to Dashboard
                     <ArrowRight className="size-4" />
                   </Link>
+                ) : session?.user ? (
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href="/join"
+                      className="inline-flex items-center gap-2 border bg-card px-6 py-3 font-heading font-bold text-sm uppercase tracking-wider hover:bg-muted transition-all"
+                    >
+                      <Users className="size-4" />
+                      Join Shop
+                    </Link>
+                    <Link
+                      href="/create-shop"
+                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 font-heading font-bold text-sm uppercase tracking-wider hover:brightness-110 transition-all"
+                    >
+                      <Store className="size-4" />
+                      Create Shop
+                    </Link>
+                  </div>
                 ) : (
                   <SignInButton />
                 )}
@@ -181,6 +207,23 @@ export default async function HomePage() {
                   Go to Dashboard
                   <ArrowRight className="size-4" />
                 </Link>
+              ) : session?.user ? (
+                <div className="flex items-center justify-center gap-3">
+                  <Link
+                    href="/join"
+                    className="inline-flex items-center gap-2 border bg-card px-6 py-3 font-heading font-bold text-sm uppercase tracking-wider hover:bg-muted transition-all"
+                  >
+                    <Users className="size-4" />
+                    Join Shop
+                  </Link>
+                  <Link
+                    href="/create-shop"
+                    className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 font-heading font-bold text-sm uppercase tracking-wider hover:brightness-110 transition-all"
+                  >
+                    <Store className="size-4" />
+                    Create Shop
+                  </Link>
+                </div>
               ) : (
                 <SignInButton />
               )}

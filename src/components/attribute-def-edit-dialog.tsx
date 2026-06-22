@@ -24,6 +24,7 @@ type Props = {
 
 export function AttributeDefEditDialog({ def }: Props) {
   const [open, setOpen] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const boundAction = updateAttribute.bind(null, def.id);
   const [state, formAction, pending] = useActionState(boundAction, null);
   const submittedRef = useRef(false);
@@ -38,7 +39,33 @@ export function AttributeDefEditDialog({ def }: Props) {
       toast.success("Field updated");
       submittedRef.current = false;
     }
+    if (state?.error) {
+      toast.error(state.error);
+    }
   }, [state]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const errors: Record<string, string> = {};
+
+    const key = (data.get("key") as string)?.trim();
+    if (!key) errors.key = "Key is required";
+
+    const label = (data.get("label") as string)?.trim();
+    if (!label) errors.label = "Label is required";
+
+    const type = data.get("type") as string;
+    if (!type) errors.type = "Type is required";
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+    formAction(data);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -49,28 +76,42 @@ export function AttributeDefEditDialog({ def }: Props) {
         <DialogHeader>
           <DialogTitle className="font-heading font-bold text-sm uppercase tracking-wider">Edit Field</DialogTitle>
         </DialogHeader>
-        <form action={formAction} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="key" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Key</Label>
-            <Input id="key" name="key" defaultValue={def.key} required />
+            <Label htmlFor="key" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+              Key <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="key" name="key" defaultValue={def.key} />
+            {fieldErrors.key && (
+              <p className="text-xs text-destructive">{fieldErrors.key}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="label" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Label</Label>
-            <Input id="label" name="label" defaultValue={def.label} required />
+            <Label htmlFor="label" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+              Label <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="label" name="label" defaultValue={def.label} />
+            {fieldErrors.label && (
+              <p className="text-xs text-destructive">{fieldErrors.label}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="type" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Type</Label>
+            <Label htmlFor="type" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+              Type <span className="text-destructive ml-0.5">*</span>
+            </Label>
             <select
               id="type"
               name="type"
               defaultValue={def.type}
               className="flex h-9 w-full bg-background border px-2.5 py-1.5 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-ring"
-              required
             >
               {types.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
+            {fieldErrors.type && (
+              <p className="text-xs text-destructive">{fieldErrors.type}</p>
+            )}
           </div>
           {state?.error && (
             <p className="text-sm font-sans text-destructive">{state.error}</p>

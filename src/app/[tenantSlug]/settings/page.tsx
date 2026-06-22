@@ -5,20 +5,32 @@ import { redirect } from "next/navigation";
 import { AttributeDefForm } from "@/components/attribute-def-form";
 import { AttributeDefEditDialog } from "@/components/attribute-def-edit-dialog";
 import { deleteAttributeAction } from "@/app/actions/attributes";
+import { InviteCodeSection } from "@/components/invite-code-section";
+import { MemberListSection } from "@/components/member-list-section";
+import { SettingsError } from "@/components/settings-error";
 import { Button } from "@/components/ui/button";
 import { Sliders, Trash2 } from "lucide-react";
 
 export default async function SettingsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ tenantSlug: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
+  const { error } = await searchParams;
   const { tenantSlug } = await params;
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user.tenantId) redirect("/");
 
   const tenant = await prisma.tenant.findFirst({
     where: { slug: tenantSlug, id: session.user.tenantId },
+    select: {
+      id: true,
+      slug: true,
+      inviteCode: true,
+      createdById: true,
+    },
   });
   if (!tenant) redirect("/");
 
@@ -27,9 +39,25 @@ export default async function SettingsPage({
     orderBy: { id: "asc" },
   });
 
+  const isOwner = tenant.createdById === session.user.id;
+
+  const members = await prisma.user.findMany({
+    where: { tenantId: tenant.id },
+    select: { id: true, name: true, email: true, image: true },
+    orderBy: { name: "asc" },
+  });
+
   return (
     <div className="space-y-8 max-w-2xl">
+      <SettingsError error={error} />
       <h1 className="font-heading font-bold text-lg tracking-wider uppercase">Settings</h1>
+
+      {isOwner && (
+        <>
+          <InviteCodeSection initialCode={tenant.inviteCode} />
+          <MemberListSection members={members} ownerId={tenant.createdById!} />
+        </>
+      )}
 
       <div className="border bg-card p-4 space-y-5">
         <h3 className="font-heading font-bold text-xs uppercase tracking-wider">Add a Field</h3>

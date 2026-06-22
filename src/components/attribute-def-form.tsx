@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useActionState, useRef } from "react";
+import { useEffect, useActionState, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createAttribute } from "@/app/actions/attributes";
@@ -13,6 +13,7 @@ const types = ATTRIBUTE_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpper
 
 export function AttributeDefForm() {
   const [state, formAction, pending] = useActionState(createAttribute, null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
   const submittedRef = useRef(false);
 
@@ -26,31 +27,71 @@ export function AttributeDefForm() {
       formRef.current.reset();
       submittedRef.current = false;
     }
+    if (state?.error) {
+      toast.error(state.error);
+    }
   }, [state]);
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const errors: Record<string, string> = {};
+
+    const key = (data.get("key") as string)?.trim();
+    if (!key) errors.key = "Key is required";
+
+    const label = (data.get("label") as string)?.trim();
+    if (!label) errors.label = "Label is required";
+
+    const type = data.get("type") as string;
+    if (!type) errors.type = "Type is required";
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+    formAction(data);
+  };
+
   return (
-    <form ref={formRef} action={formAction} className="space-y-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="key" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Key</Label>
-          <Input id="key" name="key" placeholder="e.g. expiryDate" required />
+          <Label htmlFor="key" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+            Key <span className="text-destructive ml-0.5">*</span>
+          </Label>
+          <Input id="key" name="key" placeholder="e.g. expiryDate" />
+          {fieldErrors.key && (
+            <p className="text-xs text-destructive">{fieldErrors.key}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="label" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Label</Label>
-          <Input id="label" name="label" placeholder="e.g. Expiry Date" required />
+          <Label htmlFor="label" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+            Label <span className="text-destructive ml-0.5">*</span>
+          </Label>
+          <Input id="label" name="label" placeholder="e.g. Expiry Date" />
+          {fieldErrors.label && (
+            <p className="text-xs text-destructive">{fieldErrors.label}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="type" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Type</Label>
+          <Label htmlFor="type" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+            Type <span className="text-destructive ml-0.5">*</span>
+          </Label>
           <select
             id="type"
             name="type"
             className="flex h-9 w-full bg-background border px-2.5 py-1.5 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-ring"
-            required
           >
             {types.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
+          {fieldErrors.type && (
+            <p className="text-xs text-destructive">{fieldErrors.type}</p>
+          )}
         </div>
       </div>
       {state?.error && (

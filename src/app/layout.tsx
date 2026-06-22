@@ -55,6 +55,8 @@ export default function RootLayout({
         {children}
         <Toaster
           position="top-right"
+          richColors
+          closeButton
           toastOptions={{
             style: {
               fontFamily: "var(--font-body)",

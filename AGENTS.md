@@ -87,13 +87,13 @@ Phases are strictly sequential: 0 → 1 → 2 → 3 → 4 → 5. Do not skip pha
 ### Done
 - Phases 0–4: Full scaffolding, auth, products, stock movements, dashboard, stock takes, CSV exports, PWA, dark mode
 - Remaining 15 audit bugs fixed: `revalidatePath` UUID→slug in stock-take.ts, `$transaction` + `revalidatePath` in attributes/products, `deleteAttribute`→`deleteAttributeAction` void wrapper, `tenantSlug` param on `deleteProduct`, env var for Better Auth `baseURL` in sign-in/out buttons, dynamic `tenantSlug` in `not-found.tsx` link
-
-### In Progress
-- Phase 5: Testing, Hardening & Deployment
+- Phase 5 testing: 45 tests passing (38 Server Action unit tests + 7 cross-tenant isolation tests) covering auth guard, tenant scoping, validation, duplicate handling, insufficient stock, slug collisions, invite code flow, and owner-only operations
+- Inline form validation + toast.error effects on all 7 form components; Toaster config updated (richColors + closeButton); loading skeletons for 6 routes
 
 ### Blocked
 - Google OAuth credentials exist in `.env`; full end-to-end sign-in flow needs manual testing
 - Better Auth CLI has version mismatch with `better-call`; Session/Account/Verification models were hand-written as a workaround
+- Vercel/Neon deployment not yet configured (requires manual account setup)
 
 ## Source of Truth
 Full project plan at `docs/multitenant-inventory-project-plan.md`. Read it for schema details, auth flow diagram, and phase-by-phase acceptance criteria.
