@@ -82,7 +82,7 @@ export default async function HomePage() {
 
       <main className="flex-1">
         <section className="relative overflow-hidden border-b">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]" />
           <div className="relative flex flex-col items-center justify-center px-4 py-20 sm:py-28 text-center">
             <div className="max-w-3xl mx-auto space-y-8">
               <div className="inline-flex items-center gap-2 border bg-card px-3 py-1 text-xs font-heading font-bold uppercase tracking-wider text-muted-foreground">
