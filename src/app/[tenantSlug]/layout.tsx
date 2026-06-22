@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { LayoutDashboard, Package, Settings, ClipboardList } from "lucide-react";
 import { createLogger } from "@/lib/logger";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -51,9 +52,7 @@ export default async function TenantLayout({
       <header className="sticky top-0 z-30 border-b bg-card">
         <div className="flex h-12 items-center px-4 sm:px-6 gap-4 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-2 shrink-0">
-            <div className="size-7 flex items-center justify-center bg-primary text-primary-foreground font-heading text-xs font-bold tracking-wider">
-              SI
-            </div>
+            <Image src="/web/icons8-inventory-arcade-32.png" alt="" width={32} height={32} className="size-7" />
             <Link
               href={`/${tenantSlug}/dashboard`}
               className="font-heading font-bold text-sm tracking-widest uppercase hover:text-primary transition-colors"

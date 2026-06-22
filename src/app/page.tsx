@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import Link from "next/link";
+import Image from "next/image";
 import { SignInButton } from "@/components/sign-in-button";
 import { Package, TrendingUp, Bell, Settings, Store, ArrowRight, LayoutDashboard, BarChart3, Shield, Zap, Users } from "lucide-react";
 
@@ -45,9 +46,7 @@ export default async function HomePage() {
       <header className="border-b bg-card">
         <div className="flex h-12 items-center px-4 sm:px-6 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-2">
-            <div className="size-7 flex items-center justify-center bg-primary text-primary-foreground font-heading text-xs font-bold tracking-wider">
-              SI
-            </div>
+            <Image src="/web/icons8-inventory-arcade-32.png" alt="" width={32} height={32} className="size-7" />
             <span className="font-heading font-bold text-sm tracking-widest uppercase">Sajilo Inventory</span>
           </div>
           <div className="ml-auto">

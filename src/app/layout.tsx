@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   title: "Sajilo Inventory",
   description: "Sajilo Inventory — Multitenant inventory management for small shop owners. Track stock, define custom fields, and manage your shop.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/web/icons8-inventory-arcade-32.png",
+    shortcut: "/web/icons8-inventory-arcade-16.png",
+    apple: "/web/icons8-inventory-arcade-96.png",
+  },
   other: {
     "theme-color": "#0a0a0a",
   },
