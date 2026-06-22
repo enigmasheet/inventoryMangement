@@ -1,8 +1,7 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -21,7 +20,7 @@ export async function createAttribute(
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     log.warn("createAttribute rejected — no session");
     return { error: "Unauthorized" };
@@ -63,7 +62,7 @@ export async function updateAttribute(
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     log.warn("updateAttribute rejected — no session");
     return { error: "Unauthorized" };
@@ -110,7 +109,7 @@ export async function updateAttribute(
 }
 
 async function _deleteAttribute(attributeId: string): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     log.warn("deleteAttribute rejected — no session");
     return { error: "Unauthorized" };
@@ -143,7 +142,7 @@ async function _deleteAttribute(attributeId: string): Promise<{ error?: string }
 export async function deleteAttributeAction(attributeId: string): Promise<void> {
   const result = await _deleteAttribute(attributeId);
   if (!result?.error) return;
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (session?.user.tenantId) {
     const tenant = await prisma.tenant.findFirst({
       where: { id: session.user.tenantId },

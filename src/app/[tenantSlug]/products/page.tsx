@@ -1,6 +1,5 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, Search, Download } from "lucide-react";
@@ -19,7 +18,7 @@ export default async function ProductsPage({
   const { tenantSlug } = await params;
   const { q, page } = await searchParams;
   const currentPage = Math.max(1, Number(page) || 1);
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) redirect("/");
 
   const tenant = await prisma.tenant.findFirst({

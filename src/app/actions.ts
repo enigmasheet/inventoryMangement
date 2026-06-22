@@ -1,9 +1,8 @@
 "use server";
 
 import { randomBytes } from "crypto";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import slugify from "slugify";
@@ -25,7 +24,7 @@ export async function createShop(
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user) {
     log.warn("createShop rejected — no session");
     return { error: "Unauthorized" };
@@ -80,7 +79,7 @@ export async function joinShopByCode(
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user) {
     log.warn("joinShop rejected — no session");
     return { error: "Unauthorized" };
@@ -116,7 +115,7 @@ export async function joinShopByCode(
 }
 
 export async function regenerateInviteCode(): Promise<{ error?: string; inviteCode?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user?.tenantId) {
     log.warn("regenerateInviteCode rejected — no session or tenant");
     return { error: "Unauthorized" };
@@ -147,7 +146,7 @@ export async function regenerateInviteCode(): Promise<{ error?: string; inviteCo
 export async function removeMember(
   userId: string
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user?.tenantId) {
     log.warn("removeMember rejected — no session");
     return { error: "Unauthorized" };
@@ -188,7 +187,7 @@ export async function removeMember(
 export async function toggleFinancials(
   showFinancials: boolean
 ): Promise<{ error?: string; showFinancials?: boolean } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user?.tenantId) {
     log.warn("toggleFinancials rejected — no session");
     return { error: "Unauthorized", showFinancials };
@@ -216,7 +215,7 @@ export async function toggleFinancials(
 }
 
 export async function getInviteCode(): Promise<{ error?: string; inviteCode?: string | null } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user?.tenantId) {
     return { error: "Unauthorized" };
   }

@@ -1,6 +1,5 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { startStockTakeAction } from "@/app/actions/stock-take";
 import { StockTakeListError } from "@/components/stock-take-list-error";
@@ -16,7 +15,7 @@ export default async function StockTakeListPage({
 }) {
   const { tenantSlug } = await params;
   const { error } = await searchParams;
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) redirect("/");
 
   const tenant = await prisma.tenant.findFirst({

@@ -1,6 +1,5 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/product-form";
@@ -12,7 +11,7 @@ export default async function EditProductPage({
   params: Promise<{ tenantSlug: string; productId: string }>;
 }) {
   const { tenantSlug, productId } = await params;
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) redirect("/");
 
   const tenant = await prisma.tenant.findFirst({

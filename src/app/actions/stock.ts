@@ -1,8 +1,7 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
@@ -22,7 +21,7 @@ export async function recordMovement(
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     log.warn("recordMovement rejected — no tenant");
     return { error: "Unauthorized" };

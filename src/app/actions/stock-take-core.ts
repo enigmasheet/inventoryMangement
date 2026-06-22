@@ -1,8 +1,7 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createLogger } from "@/lib/logger";
@@ -14,7 +13,7 @@ export async function _startStockTake(
   tenantSlug: string,
   note?: string
 ): Promise<{ error?: string; stockTakeId?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     log.warn("startStockTake rejected — no session");
     return { error: "Unauthorized" };
@@ -74,7 +73,7 @@ export async function completeStockTake(
   stockTakeId: string,
   applyAdjustments: boolean
 ): Promise<{ tenantSlug?: string; error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     return { error: "Unauthorized" };
   }
@@ -102,14 +101,22 @@ export async function completeStockTake(
     });
 
     if (applyAdjustments) {
-      for (const item of stockTake.items) {
-        if (item.countedQuantity !== null && item.countedQuantity !== item.expectedQuantity) {
-          const currentItem = await tx.product.findUnique({
-            where: { id: item.productId },
-            select: { quantity: true },
-          });
-          if (!currentItem) continue;
-          const diff = item.countedQuantity - currentItem.quantity;
+      const discrepantIds = stockTake.items
+        .filter((i) => i.countedQuantity !== null && i.countedQuantity !== i.expectedQuantity)
+        .map((i) => i.productId);
+
+      if (discrepantIds.length > 0) {
+        const currentProducts = await tx.product.findMany({
+          where: { id: { in: discrepantIds } },
+          select: { id: true, quantity: true },
+        });
+        const productMap = new Map(currentProducts.map((p) => [p.id, p.quantity]));
+
+        for (const item of stockTake.items) {
+          if (item.countedQuantity === null || item.countedQuantity === item.expectedQuantity) continue;
+          const currentQty = productMap.get(item.productId);
+          if (currentQty === undefined) continue;
+          const diff = item.countedQuantity - currentQty;
           if (diff !== 0) {
             await tx.product.update({
               where: { id: item.productId },
@@ -139,7 +146,7 @@ export async function completeStockTake(
 }
 
 export async function _cancelStockTake(stockTakeId: string): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     return { error: "Unauthorized" };
   }

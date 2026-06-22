@@ -1,6 +1,5 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AttributeDefForm } from "@/components/attribute-def-form";
 import { AttributeDefEditDialog } from "@/components/attribute-def-edit-dialog";
@@ -21,7 +20,7 @@ export default async function SettingsPage({
 }) {
   const { error } = await searchParams;
   const { tenantSlug } = await params;
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) redirect("/");
 
   const tenant = await prisma.tenant.findFirst({
@@ -36,18 +35,19 @@ export default async function SettingsPage({
   });
   if (!tenant) redirect("/");
 
-  const defs = await prisma.attributeDefinition.findMany({
-    where: { tenantId: tenant.id },
-    orderBy: { id: "asc" },
-  });
+  const [defs, members] = await Promise.all([
+    prisma.attributeDefinition.findMany({
+      where: { tenantId: tenant.id },
+      orderBy: { id: "asc" },
+    }),
+    prisma.user.findMany({
+      where: { tenantId: tenant.id },
+      select: { id: true, name: true, email: true, image: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   const isOwner = tenant.createdById === session.user.id;
-
-  const members = await prisma.user.findMany({
-    where: { tenantId: tenant.id },
-    select: { id: true, name: true, email: true, image: true },
-    orderBy: { name: "asc" },
-  });
 
   return (
     <div className="space-y-8 max-w-2xl">

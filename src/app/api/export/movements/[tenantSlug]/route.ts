@@ -1,20 +1,22 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
   const { tenantSlug } = await params;
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   const tenant = await prisma.tenant.findFirst({
     where: { slug: tenantSlug, id: session.user.tenantId },
+    select: { id: true },
   });
   if (!tenant) {
     return new NextResponse("Not found", { status: 404 });

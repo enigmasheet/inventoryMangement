@@ -1,8 +1,7 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -22,7 +21,7 @@ export async function updateStockTakeItem(
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     return { error: "Unauthorized" };
   }
@@ -78,7 +77,7 @@ export async function startStockTakeAction(tenantSlug: string): Promise<void> {
 }
 
 export async function cancelStockTakeAction(tenantSlug: string, stockTakeId: string): Promise<void> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user.tenantId) {
     redirect(`/${tenantSlug}/stock-take/${stockTakeId}?error=${encodeURIComponent("Unauthorized")}`);
     return;

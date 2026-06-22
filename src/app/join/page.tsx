@@ -1,12 +1,11 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { JoinShopForm } from "@/components/join-shop-form";
 import { Users, ArrowLeft } from "lucide-react";
 
 export default async function JoinShopPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
 
   if (!session?.user) {
     redirect("/");

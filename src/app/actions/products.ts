@@ -1,8 +1,7 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -38,7 +37,7 @@ export async function createProduct(
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user) {
     log.warn("createProduct rejected — no session");
     return { error: "Unauthorized" };
@@ -96,7 +95,7 @@ export async function updateProduct(
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user) {
     log.warn("updateProduct rejected — no session");
     return { error: "Unauthorized" };
@@ -165,7 +164,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(productId: string, tenantSlug: string): Promise<{ error?: string } | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session?.user) {
     log.warn("deleteProduct rejected — no session");
     return { error: "Unauthorized" };

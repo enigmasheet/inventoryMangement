@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/session";
 import Link from "next/link";
 import Image from "next/image";
 import { SignInButton } from "@/components/sign-in-button";
@@ -29,7 +28,7 @@ const features = [
 ];
 
 export default async function HomePage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
 
   let tenantSlug: string | null = null;
   if (session?.user.tenantId) {
