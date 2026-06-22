@@ -1,4 +1,4 @@
-# AGENTS.md — Multitenant Inventory Management System
+# AGENTS.md — Sajilo Inventory
 
 ## Tech Stack
 - Next.js 16 (App Router, Turbopack default)

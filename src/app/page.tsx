@@ -46,9 +46,9 @@ export default async function HomePage() {
         <div className="flex h-12 items-center px-4 sm:px-6 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-2">
             <div className="size-7 flex items-center justify-center bg-primary text-primary-foreground font-heading text-xs font-bold tracking-wider">
-              SP
+              SI
             </div>
-            <span className="font-heading font-bold text-sm tracking-widest uppercase">StockPilot</span>
+            <span className="font-heading font-bold text-sm tracking-widest uppercase">Sajilo Inventory</span>
           </div>
           <div className="ml-auto">
             {tenantSlug ? (
@@ -165,11 +165,41 @@ export default async function HomePage() {
           </div>
         </section>
 
+        <section className="border-t py-16 sm:py-20">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="text-center mb-10 space-y-2">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold uppercase tracking-wider">
+                How It Works
+              </h2>
+              <p className="font-sans text-sm text-muted-foreground">
+                From sign-up to stock tracking in four simple steps.
+              </p>
+            </div>
+            <div className="relative grid gap-6 sm:grid-cols-4">
+              <div className="hidden sm:block absolute top-6 left-[12.5%] right-[12.5%] h-px bg-border" />
+              {[
+                { step: 1, icon: "01", title: "Sign In", desc: "Use your Google account — no passwords to remember." },
+                { step: 2, icon: "02", title: "Create Shop", desc: "Name your shop, pick a category, and get an invite code." },
+                { step: 3, icon: "03", title: "Add Products", desc: "Define custom fields, set prices, and stock quantities." },
+                { step: 4, icon: "04", title: "Track & Manage", desc: "Record movements, get low-stock alerts, and view insights." },
+              ].map((item) => (
+                <div key={item.step} className="relative flex flex-col items-center text-center space-y-3 p-4">
+                  <div className="size-10 flex items-center justify-center bg-primary/10 text-primary font-heading font-bold text-sm z-10">
+                    {item.icon}
+                  </div>
+                  <h3 className="font-heading font-bold text-xs uppercase tracking-wider">{item.title}</h3>
+                  <p className="text-sm font-sans text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="border-t py-16 border-b-0">
           <div className="max-w-5xl mx-auto px-4">
             <div className="text-center mb-10 space-y-2">
               <h2 className="font-heading text-2xl sm:text-3xl font-bold uppercase tracking-wider">
-                Why StockPilot?
+                Why Sajilo Inventory?
               </h2>
             </div>
             <div className="grid gap-6 sm:grid-cols-3">
@@ -184,6 +214,35 @@ export default async function HomePage() {
                   </div>
                   <h3 className="font-heading font-bold text-xs uppercase tracking-wider">{item.title}</h3>
                   <p className="text-sm font-sans text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t py-16 sm:py-20">
+          <div className="max-w-3xl mx-auto px-4">
+            <div className="text-center mb-10 space-y-2">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold uppercase tracking-wider">
+                Frequently Asked Questions
+              </h2>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                { q: "What is Sajilo Inventory?", a: "A multitenant inventory system for small shops. Track stock, define custom product fields, and manage everything from one dashboard." },
+                { q: "How does data isolation work?", a: "Each shop's data is completely separate. Products, stock movements, and settings from one shop are never visible to another." },
+                { q: "Can I customise product fields?", a: "Yes. Add custom attributes like expiry dates, sizes, colors — any field your shop needs — without writing code." },
+                { q: "How do I add team members?", a: "The owner generates an invite code from Settings. Share it with your team — they sign in with Google and join with one click." },
+                { q: "Is my data secure?", a: "Yes. Authentication uses Google OAuth, and every query is scoped to your shop. Your data stays private and isolated." },
+                { q: "Can I use it on my phone?", a: "The app is fully responsive and can be installed as a PWA, giving you a native-like experience on any device." },
+              ].map((faq) => (
+                <div key={faq.q} className="border bg-card p-4 space-y-2">
+                  <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-foreground">
+                    {faq.q}
+                  </h3>
+                  <p className="text-sm font-sans text-muted-foreground leading-relaxed">
+                    {faq.a}
+                  </p>
                 </div>
               ))}
             </div>
@@ -234,7 +293,7 @@ export default async function HomePage() {
 
       <footer className="border-t py-6 bg-card">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs font-sans text-muted-foreground">
-          StockPilot — Multitenant Inventory Management
+          Sajilo Inventory — Multitenant Inventory Management
         </div>
       </footer>
     </div>

@@ -1,6 +1,6 @@
 {
-  "name": "StockPilot — Inventory Management",
-  "short_name": "StockPilot",
+  "name": "Sajilo Inventory",
+  "short_name": "Sajilo Inventory",
   "description": "Multitenant inventory management for small shop owners",
   "start_url": "/",
   "display": "standalone",

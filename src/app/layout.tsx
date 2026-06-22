@@ -23,8 +23,8 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StockPilot — Inventory Management",
-  description: "Multitenant inventory management for small shop owners",
+  title: "Sajilo Inventory",
+  description: "Sajilo Inventory — Multitenant inventory management for small shop owners. Track stock, define custom fields, and manage your shop.",
   manifest: "/manifest.json",
   other: {
     "theme-color": "#0a0a0a",

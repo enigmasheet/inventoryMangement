@@ -52,7 +52,7 @@ export default async function TenantLayout({
         <div className="flex h-12 items-center px-4 sm:px-6 gap-4 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-2 shrink-0">
             <div className="size-7 flex items-center justify-center bg-primary text-primary-foreground font-heading text-xs font-bold tracking-wider">
-              SP
+              SI
             </div>
             <Link
               href={`/${tenantSlug}/dashboard`}
