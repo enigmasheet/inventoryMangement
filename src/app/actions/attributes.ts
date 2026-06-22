@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
 import { ATTRIBUTE_TYPES } from "@/lib/constants";
@@ -49,7 +50,7 @@ export async function createAttribute(
   }
 
   log.info("attribute definition created", { key: parsed.data.key, label: parsed.data.label });
-  const tenant = await prisma.tenant.findUnique({
+  const tenant = await prisma.tenant.findFirst({
     where: { id: session.user.tenantId },
     select: { slug: true },
   });
@@ -100,7 +101,7 @@ export async function updateAttribute(
   }
 
   log.info("attribute definition updated", { attributeId, key: parsed.data.key });
-  const tenant = await prisma.tenant.findUnique({
+  const tenant = await prisma.tenant.findFirst({
     where: { id: session.user.tenantId! },
     select: { slug: true },
   });
@@ -131,7 +132,7 @@ async function _deleteAttribute(attributeId: string): Promise<{ error?: string }
   ]);
 
   log.info("attribute definition deleted", { attributeId, key: def.key });
-  const tenant = await prisma.tenant.findUnique({
+  const tenant = await prisma.tenant.findFirst({
     where: { id: session.user.tenantId! },
     select: { slug: true },
   });
@@ -140,5 +141,14 @@ async function _deleteAttribute(attributeId: string): Promise<{ error?: string }
 }
 
 export async function deleteAttributeAction(attributeId: string): Promise<void> {
-  await _deleteAttribute(attributeId);
+  const result = await _deleteAttribute(attributeId);
+  if (!result?.error) return;
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (session?.user.tenantId) {
+    const tenant = await prisma.tenant.findFirst({
+      where: { id: session.user.tenantId },
+      select: { slug: true },
+    });
+    if (tenant) redirect(`/${tenant.slug}/settings?error=${encodeURIComponent(result.error)}`);
+  }
 }

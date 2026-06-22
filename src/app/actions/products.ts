@@ -39,9 +39,13 @@ export async function createProduct(
   formData: FormData
 ): Promise<{ error?: string } | null> {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user.tenantId) {
+  if (!session?.user) {
     log.warn("createProduct rejected — no session");
     return { error: "Unauthorized" };
+  }
+  if (!session.user.tenantId) {
+    log.warn("createProduct rejected — no tenant");
+    return { error: "No shop found. Create a shop first." };
   }
 
   const parsed = productSchema.safeParse(extractFormData(formData));
@@ -65,18 +69,25 @@ export async function createProduct(
     }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.product.create({
-      data: {
-        tenantId: tenant.id,
-        ...parsed.data,
-        attributes: { create: attrs },
-      },
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.product.create({
+        data: {
+          tenantId: tenant.id,
+          ...parsed.data,
+          attributes: { create: attrs },
+        },
+      });
     });
-  });
+  } catch (e: unknown) {
+    if (typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "P2002") {
+      return { error: `A product with SKU "${parsed.data.sku}" already exists` };
+    }
+    throw e;
+  }
 
   log.info("product created", { name: parsed.data.name, sku: parsed.data.sku });
-  redirect(`/${tenantSlug}/products`);
+  redirect(`/${tenant.slug}/products`);
 }
 
 export async function updateProduct(
@@ -86,9 +97,13 @@ export async function updateProduct(
   formData: FormData
 ): Promise<{ error?: string } | null> {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user.tenantId) {
+  if (!session?.user) {
     log.warn("updateProduct rejected — no session");
     return { error: "Unauthorized" };
+  }
+  if (!session.user.tenantId) {
+    log.warn("updateProduct rejected — no tenant");
+    return { error: "No shop found. Create a shop first." };
   }
 
   const parsed = productSchema.safeParse(extractFormData(formData));
@@ -112,36 +127,52 @@ export async function updateProduct(
     }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.product.update({
-      where: { id: productId },
-      data: parsed.data,
-    });
-
-    await tx.productAttributeValue.deleteMany({
-      where: { productId },
-    });
-
-    if (attrs.length > 0) {
-      await tx.productAttributeValue.createMany({
-        data: attrs.map((a) => ({
-          productId,
-          attributeDefId: a.attributeDefId,
-          value: a.value,
-        })),
-      });
-    }
+  const tenant = await prisma.tenant.findFirst({
+    where: { id: session.user.tenantId },
+    select: { slug: true },
   });
 
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: productId },
+        data: parsed.data,
+      });
+
+      await tx.productAttributeValue.deleteMany({
+        where: { productId },
+      });
+
+      if (attrs.length > 0) {
+        await tx.productAttributeValue.createMany({
+          data: attrs.map((a) => ({
+            productId,
+            attributeDefId: a.attributeDefId,
+            value: a.value,
+          })),
+        });
+      }
+    });
+  } catch (e: unknown) {
+    if (typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "P2002") {
+      return { error: `A product with SKU "${parsed.data.sku}" already exists` };
+    }
+    throw e;
+  }
+
   log.info("product updated", { productId, name: parsed.data.name });
-  redirect(`/${tenantSlug}/products`);
+  redirect(`/${tenant?.slug ?? tenantSlug}/products`);
 }
 
 export async function deleteProduct(productId: string, tenantSlug: string): Promise<{ error?: string } | null> {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user.tenantId) {
+  if (!session?.user) {
     log.warn("deleteProduct rejected — no session");
     return { error: "Unauthorized" };
+  }
+  if (!session.user.tenantId) {
+    log.warn("deleteProduct rejected — no tenant");
+    return { error: "No shop found." };
   }
 
   const product = await prisma.product.findFirst({
@@ -152,6 +183,11 @@ export async function deleteProduct(productId: string, tenantSlug: string): Prom
     return { error: "Not found" };
   }
 
+  const tenant = await prisma.tenant.findFirst({
+    where: { id: session.user.tenantId },
+    select: { slug: true },
+  });
+
   await prisma.$transaction([
     prisma.productAttributeValue.deleteMany({ where: { productId } }),
     prisma.stockMovement.deleteMany({ where: { productId } }),
@@ -159,7 +195,8 @@ export async function deleteProduct(productId: string, tenantSlug: string): Prom
   ]);
 
   log.info("product deleted", { productId, name: product.name });
-  revalidatePath(`/${tenantSlug}/products`);
-  revalidatePath(`/${tenantSlug}/dashboard`);
+  const slug = tenant?.slug ?? tenantSlug;
+  revalidatePath(`/${slug}/products`);
+  revalidatePath(`/${slug}/dashboard`);
   return null;
 }

@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
+import { STOCK_TAKE_STATUS } from "@/lib/constants";
 import { _startStockTake, completeStockTake, _cancelStockTake } from "./stock-take-core";
 
 const log = createLogger("actions:stock-take");
@@ -34,13 +35,13 @@ export async function updateStockTakeItem(
   }
 
   const item = await prisma.stockTakeItem.findFirst({
-    where: { id: itemId },
-    include: { stockTake: { select: { id: true, tenantId: true, status: true } } },
+    where: { id: itemId, stockTake: { tenantId: session.user.tenantId } },
+    include: { stockTake: { select: { id: true, status: true } } },
   });
-  if (!item || item.stockTake.tenantId !== session.user.tenantId) {
+  if (!item) {
     return { error: "Not found" };
   }
-  if (item.stockTake.status !== "in_progress") {
+  if (item.stockTake.status !== STOCK_TAKE_STATUS.IN_PROGRESS) {
     return { error: "Stock take is not active" };
   }
 
@@ -64,6 +65,9 @@ export async function completeStockTakeAction(
   if (result?.error) {
     redirect(`/${tenantSlug}/stock-take/${stockTakeId}?error=${encodeURIComponent(result.error)}`);
   }
+  if (result?.tenantSlug) {
+    redirect(`/${result.tenantSlug}/stock-take`);
+  }
 }
 
 export async function startStockTakeAction(tenantSlug: string): Promise<void> {
@@ -74,8 +78,22 @@ export async function startStockTakeAction(tenantSlug: string): Promise<void> {
 }
 
 export async function cancelStockTakeAction(tenantSlug: string, stockTakeId: string): Promise<void> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user.tenantId) {
+    redirect(`/${tenantSlug}/stock-take/${stockTakeId}?error=${encodeURIComponent("Unauthorized")}`);
+    return;
+  }
+  const tenant = await prisma.tenant.findFirst({
+    where: { id: session.user.tenantId },
+    select: { slug: true },
+  });
+  if (!tenant) {
+    redirect(`/${tenantSlug}/stock-take/${stockTakeId}?error=${encodeURIComponent("Not found")}`);
+    return;
+  }
   const result = await _cancelStockTake(stockTakeId);
   if (result?.error) {
-    redirect(`/${tenantSlug}/stock-take/${stockTakeId}?error=${encodeURIComponent(result.error)}`);
+    redirect(`/${tenant.slug}/stock-take/${stockTakeId}?error=${encodeURIComponent(result.error)}`);
   }
+  redirect(`/${tenant.slug}/stock-take`);
 }

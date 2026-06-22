@@ -79,7 +79,7 @@ export default async function DashboardPage({
   ]);
 
   const formatCurrency = (v: string | null) =>
-    `रू${Number(v ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `${tenant.currency}${Number(v ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <div className="space-y-8">

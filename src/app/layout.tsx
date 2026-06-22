@@ -61,17 +61,9 @@ export default function RootLayout({
             },
           }}
         />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(regs) {
-                  for (var i = 0; i < regs.length; i++) regs[i].unregister();
-                });
-              }
-            `,
-          }}
-        />
+        <Script id="sw-unregister" strategy="afterInteractive">
+          {`if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(function(regs) { for (var i = 0; i < regs.length; i++) regs[i].unregister(); }); }`}
+        </Script>
       </body>
     </html>
   );

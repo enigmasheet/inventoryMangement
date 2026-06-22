@@ -66,8 +66,8 @@ export default async function ProductDetailPage({
 
   const infoItems = [
     { icon: Hash, label: "SKU", value: product.sku, mono: true },
-    { icon: DollarSign, label: "Selling Price", value: `रू${price.toFixed(2)}`, mono: true },
-    { icon: TrendingDown, label: "Cost Price", value: `रू${cost.toFixed(2)}`, mono: true },
+    { icon: DollarSign, label: "Selling Price", value: `${tenant.currency}${price.toFixed(2)}`, mono: true },
+    { icon: TrendingDown, label: "Cost Price", value: `${tenant.currency}${cost.toFixed(2)}`, mono: true },
     { icon: TrendingUp, label: "Profit Margin", value: `${profitMargin.toFixed(1)}%`, mono: true, valueClass: profit >= 0 ? "text-success" : "text-destructive" },
     { icon: Layers, label: "Quantity", value: `${product.quantity} ${product.unit}`, mono: true },
     { icon: Archive, label: "Low Stock Limit", value: product.lowStockLimit.toString(), mono: true },

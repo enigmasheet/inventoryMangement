@@ -1,15 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { createAuthClient } from "better-auth/react";
 import { Loader2 } from "lucide-react";
 import { createLogger } from "@/lib/logger";
+import { authClient } from "@/lib/auth-client";
 
 const clientLog = createLogger("auth:client");
-
-const baseURL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
-const authClient = createAuthClient({ baseURL });
 
 export function SignInButton() {
   const [loading, setLoading] = useState(false);

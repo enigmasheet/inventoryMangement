@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createLogger } from "@/lib/logger";
+import { STOCK_TAKE_STATUS } from "@/lib/constants";
 
 const log = createLogger("actions:stock-take-core");
 
@@ -27,36 +28,42 @@ export async function _startStockTake(
     return { error: "Not found" };
   }
 
-  const stockTake = await prisma.$transaction(async (tx) => {
-    const existingActive = await tx.stockTake.findFirst({
-      where: { tenantId: tenant.id, status: "in_progress" },
-    });
-    if (existingActive) {
-      throw new Error("An active stock take already exists");
-    }
+  let stockTake;
+  try {
+    stockTake = await prisma.$transaction(async (tx) => {
+      const existingActive = await tx.stockTake.findFirst({
+        where: { tenantId: tenant.id, status: STOCK_TAKE_STATUS.IN_PROGRESS },
+      });
+      if (existingActive) {
+        throw new Error("An active stock take already exists");
+      }
 
-    const products = await tx.product.findMany({
-      where: { tenantId: tenant.id },
-      select: { id: true, quantity: true },
-    });
-    if (products.length === 0) {
-      throw new Error("No products to count");
-    }
+      const products = await tx.product.findMany({
+        where: { tenantId: tenant.id },
+        select: { id: true, quantity: true },
+      });
+      if (products.length === 0) {
+        throw new Error("No products to count");
+      }
 
-    return tx.stockTake.create({
-      data: {
-        tenantId: tenant.id,
-        note: note || null,
-        status: "in_progress",
-        items: {
-          create: products.map((p) => ({
-            productId: p.id,
-            expectedQuantity: p.quantity,
-          })),
+      return tx.stockTake.create({
+        data: {
+          tenantId: tenant.id,
+          note: note || null,
+          status: STOCK_TAKE_STATUS.IN_PROGRESS,
+          items: {
+            create: products.map((p) => ({
+              productId: p.id,
+              expectedQuantity: p.quantity,
+            })),
+          },
         },
-      },
+      });
     });
-  });
+  } catch (e: unknown) {
+    if (e instanceof Error) return { error: e.message };
+    throw e;
+  }
 
   log.info("stock take started", { stockTakeId: stockTake.id });
   revalidatePath(`/${tenantSlug}/dashboard`);
@@ -79,7 +86,7 @@ export async function completeStockTake(
   if (!stockTake) {
     return { error: "Not found" };
   }
-  if (stockTake.status !== "in_progress") {
+  if (stockTake.status !== STOCK_TAKE_STATUS.IN_PROGRESS) {
     return { error: "Stock take is already completed" };
   }
 
@@ -91,26 +98,33 @@ export async function completeStockTake(
   await prisma.$transaction(async (tx) => {
     await tx.stockTake.update({
       where: { id: stockTakeId },
-      data: { status: "completed", completedAt: new Date() },
+      data: { status: STOCK_TAKE_STATUS.COMPLETED, completedAt: new Date() },
     });
 
     if (applyAdjustments) {
       for (const item of stockTake.items) {
         if (item.countedQuantity !== null && item.countedQuantity !== item.expectedQuantity) {
-          await tx.product.update({
+          const currentItem = await tx.product.findUnique({
             where: { id: item.productId },
-            data: { quantity: item.countedQuantity },
+            select: { quantity: true },
           });
-          const diff = item.countedQuantity - item.expectedQuantity;
-          await tx.stockMovement.create({
-            data: {
-              tenantId: stockTake.tenantId,
-              productId: item.productId,
-              type: diff > 0 ? "IN" : "OUT",
-              quantity: Math.abs(diff),
-              note: `Stock take adjustment (${stockTakeId.slice(0, 8)})`,
-            },
-          });
+          if (!currentItem) continue;
+          const diff = item.countedQuantity - currentItem.quantity;
+          if (diff !== 0) {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { quantity: { increment: diff } },
+            });
+            await tx.stockMovement.create({
+              data: {
+                tenantId: stockTake.tenantId,
+                productId: item.productId,
+                type: diff > 0 ? "IN" : "OUT",
+                quantity: Math.abs(diff),
+                note: `Stock take adjustment (${stockTakeId.slice(0, 8)})`,
+              },
+            });
+          }
         }
       }
     }
@@ -137,13 +151,13 @@ export async function _cancelStockTake(stockTakeId: string): Promise<{ error?: s
   if (!stockTake) {
     return { error: "Not found" };
   }
-  if (stockTake.status !== "in_progress") {
+  if (stockTake.status !== STOCK_TAKE_STATUS.IN_PROGRESS) {
     return { error: "Stock take is not active" };
   }
 
   await prisma.stockTake.update({
     where: { id: stockTakeId },
-    data: { status: "cancelled", completedAt: new Date() },
+    data: { status: STOCK_TAKE_STATUS.CANCELLED },
   });
 
   log.info("stock take cancelled", { stockTakeId });

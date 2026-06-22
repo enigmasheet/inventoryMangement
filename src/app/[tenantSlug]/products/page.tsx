@@ -97,7 +97,7 @@ export default async function ProductsPage({
         />
       </form>
 
-      <ProductList tenantSlug={tenantSlug} products={products} />
+      <ProductList tenantSlug={tenantSlug} currency={tenant.currency} products={products} />
 
       <ProductPagination
         currentPage={currentPage}

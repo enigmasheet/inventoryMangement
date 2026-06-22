@@ -10,7 +10,7 @@ const levels: Record<Level, number> = {
 
 function getConfiguredLevel(): number {
   if (typeof window === "undefined") {
-    return levels[(process.env.LOG_LEVEL as Level) ?? "silent"];
+    return levels[(process.env.LOG_LEVEL as Level) || "silent"];
   }
   try {
     const stored = localStorage.getItem("logLevel") as Level | null;

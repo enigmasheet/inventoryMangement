@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useActionState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { AttributeDefinition, Product, ProductAttributeValue } from "@/generated/prisma/client";
@@ -16,6 +17,8 @@ type SerializedProduct = Omit<Product, "unitPrice" | "costPrice"> & {
 };
 
 type Props = {
+  tenantSlug: string;
+  currency: string;
   attributeDefs: Pick<AttributeDefinition, "id" | "key" | "label" | "type">[];
   product?: SerializedProduct;
   action: (
@@ -24,7 +27,8 @@ type Props = {
   ) => Promise<{ error?: string } | null>;
 };
 
-export function ProductForm({ attributeDefs, product, action }: Props) {
+export function ProductForm({ tenantSlug, currency, attributeDefs, product, action }: Props) {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(action, null);
   const submittedRef = useRef(false);
 
@@ -56,7 +60,7 @@ export function ProductForm({ attributeDefs, product, action }: Props) {
             <Input id="sku" name="sku" defaultValue={product?.sku} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="unitPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Selling Price (रू)</Label>
+            <Label htmlFor="unitPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Selling Price ({currency})</Label>
             <Input
               id="unitPrice"
               name="unitPrice"
@@ -68,7 +72,7 @@ export function ProductForm({ attributeDefs, product, action }: Props) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="costPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Cost Price (रू)</Label>
+            <Label htmlFor="costPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Cost Price ({currency})</Label>
             <Input
               id="costPrice"
               name="costPrice"
@@ -152,7 +156,7 @@ export function ProductForm({ attributeDefs, product, action }: Props) {
           {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {pending ? "Saving..." : product ? "Update Product" : "Create Product"}
         </Button>
-        <Button type="button" variant="outline" onClick={() => history.back()} className="font-heading font-bold text-xs uppercase tracking-wider">
+        <Button type="button" variant="outline" onClick={() => router.push(`/${tenantSlug}/products`)} className="font-heading font-bold text-xs uppercase tracking-wider">
           Cancel
         </Button>
       </div>

@@ -81,6 +81,8 @@ model AttributeDefinition {
   label    String
   type     String
   products ProductAttributeValue[]
+
+  @@unique([tenantId, key])
 }
 
 model Product {

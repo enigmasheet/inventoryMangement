@@ -47,6 +47,8 @@ export default async function EditProductPage({
     <div className="max-w-2xl space-y-6">
       <h2 className="text-2xl font-bold">Edit Product</h2>
       <ProductForm
+        tenantSlug={tenantSlug}
+        currency={tenant.currency}
         attributeDefs={attrDefs}
         product={product}
         action={updateWithSlug}

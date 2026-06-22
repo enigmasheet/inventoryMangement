@@ -14,7 +14,7 @@ function subscribe(callback: () => void) {
 }
 
 export function ThemeToggle() {
-  const dark = useSyncExternalStore(subscribe, getSnapshot, () => true);
+  const dark = useSyncExternalStore(subscribe, getSnapshot, () => false);
 
   const toggle = () => {
     const next = !dark;

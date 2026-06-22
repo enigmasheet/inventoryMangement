@@ -14,7 +14,7 @@ export default function ProductNotFound() {
         </p>
       </div>
       <Link
-        href=".."
+        href="./"
         className="inline-flex items-center gap-1.5 text-xs font-heading font-bold uppercase tracking-wider text-primary hover:underline"
       >
         <ArrowLeft className="size-3.5" />

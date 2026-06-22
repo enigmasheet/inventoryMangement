@@ -29,7 +29,7 @@ export default async function NewProductPage({
   return (
     <div className="max-w-2xl space-y-6">
       <h2 className="text-2xl font-bold">New Product</h2>
-      <ProductForm attributeDefs={attrDefs} action={createWithSlug} />
+      <ProductForm tenantSlug={tenantSlug} currency={tenant.currency} attributeDefs={attrDefs} action={createWithSlug} />
     </div>
   );
 }

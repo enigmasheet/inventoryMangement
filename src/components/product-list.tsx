@@ -28,10 +28,11 @@ type ProductRow = {
 
 type Props = {
   tenantSlug: string;
+  currency: string;
   products: ProductRow[];
 };
 
-export function ProductList({ tenantSlug, products }: Props) {
+export function ProductList({ tenantSlug, currency, products }: Props) {
   const router = useRouter();
 
   return (
@@ -65,19 +66,19 @@ export function ProductList({ tenantSlug, products }: Props) {
             const profit = price - cost;
             const profitMargin = price > 0 ? ((profit / price) * 100) : 0;
 
-    let statusLabel: string;
-    let statusClasses: string;
+            let statusLabel: string;
+            let statusClasses: string;
 
-    if (isOut) {
-      statusLabel = "Out";
-      statusClasses = "bg-destructive/10 text-destructive";
-    } else if (isLow) {
-      statusLabel = "Low";
-      statusClasses = "bg-warning/10 text-warning";
-    } else {
-      statusLabel = "OK";
-      statusClasses = "bg-success/10 text-success";
-    }
+            if (isOut) {
+              statusLabel = "Out";
+              statusClasses = "bg-destructive/10 text-destructive";
+            } else if (isLow) {
+              statusLabel = "Low";
+              statusClasses = "bg-warning/10 text-warning";
+            } else {
+              statusLabel = "OK";
+              statusClasses = "bg-success/10 text-success";
+            }
 
             return (
               <TableRow key={p.id} className="group">
@@ -92,8 +93,8 @@ export function ProductList({ tenantSlug, products }: Props) {
                 <TableCell>
                   <code className="font-mono text-xs bg-muted px-1.5 py-0.5" data-number>{p.sku}</code>
                 </TableCell>
-                <TableCell className="font-mono text-sm" data-number>रू{price.toFixed(2)}</TableCell>
-                <TableCell className="font-mono text-sm text-muted-foreground" data-number>रू{cost.toFixed(2)}</TableCell>
+                <TableCell className="font-mono text-sm" data-number>{currency}{price.toFixed(2)}</TableCell>
+                <TableCell className="font-mono text-sm text-muted-foreground" data-number>{currency}{cost.toFixed(2)}</TableCell>
                 <TableCell>
                   <span className={`font-mono text-xs ${profit >= 0 ? "text-success" : "text-destructive"}`} data-number>
                     {profitMargin.toFixed(0)}%
