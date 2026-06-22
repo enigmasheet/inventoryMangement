@@ -78,6 +78,8 @@ export default async function DashboardPage({
     `,
   ]);
 
+  const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
+
   const formatCurrency = (v: string | null) =>
     `${tenant.currency}${Number(v ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -107,12 +109,14 @@ export default async function DashboardPage({
           icon={<DollarSign className="size-5" />}
           color="text-success"
         />
-        <MetricCard
-          label="Total Profit"
-          value={formatCurrency(totalProfit)}
-          icon={<TrendingUp className="size-5" />}
-          color="text-primary"
-        />
+        {canViewCost && (
+          <MetricCard
+            label="Total Profit"
+            value={formatCurrency(totalProfit)}
+            icon={<TrendingUp className="size-5" />}
+            color="text-primary"
+          />
+        )}
         <StockTakeCard tenantSlug={tenantSlug} activeStockTake={activeStockTake} />
       </div>
 

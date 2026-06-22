@@ -20,15 +20,20 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
+  const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
+
   const products = await prisma.product.findMany({
     where: { tenantId: tenant.id },
     orderBy: { name: "asc" },
   });
 
-  const header = "Name,SKU,Selling Price,Cost Price,Quantity,Unit,Low Stock Limit";
-  const rows = products.map(
-    (p) =>
-      `"${p.name}","${p.sku}",${p.unitPrice},${p.costPrice},${p.quantity},"${p.unit}",${p.lowStockLimit}`
+  const header = canViewCost
+    ? "Name,SKU,Selling Price,Cost Price,Quantity,Unit,Low Stock Limit"
+    : "Name,SKU,Selling Price,Quantity,Unit,Low Stock Limit";
+  const rows = products.map((p) =>
+    canViewCost
+      ? `"${p.name}","${p.sku}",${p.unitPrice},${p.costPrice},${p.quantity},"${p.unit}",${p.lowStockLimit}`
+      : `"${p.name}","${p.sku}",${p.unitPrice},${p.quantity},"${p.unit}",${p.lowStockLimit}`
   );
   const csv = [header, ...rows].join("\n");
 

@@ -7,6 +7,7 @@ import { AttributeDefEditDialog } from "@/components/attribute-def-edit-dialog";
 import { deleteAttributeAction } from "@/app/actions/attributes";
 import { InviteCodeSection } from "@/components/invite-code-section";
 import { MemberListSection } from "@/components/member-list-section";
+import { ToggleFinancials } from "@/components/toggle-financials";
 import { SettingsError } from "@/components/settings-error";
 import { Button } from "@/components/ui/button";
 import { Sliders, Trash2 } from "lucide-react";
@@ -30,6 +31,7 @@ export default async function SettingsPage({
       slug: true,
       inviteCode: true,
       createdById: true,
+      showFinancials: true,
     },
   });
   if (!tenant) redirect("/");
@@ -55,6 +57,7 @@ export default async function SettingsPage({
       {isOwner && (
         <>
           <InviteCodeSection initialCode={tenant.inviteCode} />
+          <ToggleFinancials initialValue={tenant.showFinancials} />
           <MemberListSection members={members} ownerId={tenant.createdById!} />
         </>
       )}

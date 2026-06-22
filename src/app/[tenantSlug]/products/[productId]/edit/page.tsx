@@ -30,6 +30,8 @@ export default async function EditProductPage({
   });
   if (!rawProduct) notFound();
 
+  const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
+
   const product = {
     ...rawProduct,
     unitPrice: Number(rawProduct.unitPrice),
@@ -52,6 +54,7 @@ export default async function EditProductPage({
         attributeDefs={attrDefs}
         product={product}
         action={updateWithSlug}
+        canViewCost={canViewCost}
       />
     </div>
   );

@@ -16,6 +16,7 @@ model Tenant {
   inviteCode     String?               @unique
   createdById    String?
   creator        User?                 @relation("UserCreatedTenants", fields: [createdById], references: [id])
+  showFinancials Boolean               @default(true)
   createdAt      DateTime              @default(now())
   users          User[]                @relation("TenantMembers")
   products       Product[]

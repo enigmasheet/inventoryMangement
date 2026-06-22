@@ -30,9 +30,10 @@ type Props = {
   tenantSlug: string;
   currency: string;
   products: ProductRow[];
+  canViewCost?: boolean;
 };
 
-export function ProductList({ tenantSlug, currency, products }: Props) {
+export function ProductList({ tenantSlug, currency, products, canViewCost = true }: Props) {
   const router = useRouter();
 
   return (
@@ -43,8 +44,8 @@ export function ProductList({ tenantSlug, currency, products }: Props) {
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Name</TableHead>
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">SKU</TableHead>
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Sell</TableHead>
-            <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Cost</TableHead>
-            <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Margin</TableHead>
+            {canViewCost && <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Cost</TableHead>}
+            {canViewCost && <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Margin</TableHead>}
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Qty</TableHead>
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Status</TableHead>
             <TableHead className="text-right font-heading font-bold text-[10px] uppercase tracking-wider"></TableHead>
@@ -53,7 +54,7 @@ export function ProductList({ tenantSlug, currency, products }: Props) {
         <TableBody>
           {products.length === 0 && (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-12 text-muted-foreground font-sans text-sm">
+              <TableCell colSpan={canViewCost ? 8 : 6} className="text-center py-12 text-muted-foreground font-sans text-sm">
                 No products yet. Click &quot;New Product&quot; to add one.
               </TableCell>
             </TableRow>
@@ -94,12 +95,14 @@ export function ProductList({ tenantSlug, currency, products }: Props) {
                   <code className="font-mono text-xs bg-muted px-1.5 py-0.5" data-number>{p.sku}</code>
                 </TableCell>
                 <TableCell className="font-mono text-sm" data-number>{currency}{price.toFixed(2)}</TableCell>
-                <TableCell className="font-mono text-sm text-muted-foreground" data-number>{currency}{cost.toFixed(2)}</TableCell>
-                <TableCell>
-                  <span className={`font-mono text-xs ${profit >= 0 ? "text-success" : "text-destructive"}`} data-number>
-                    {profitMargin.toFixed(0)}%
-                  </span>
-                </TableCell>
+                {canViewCost && <TableCell className="font-mono text-sm text-muted-foreground" data-number>{currency}{cost.toFixed(2)}</TableCell>}
+                {canViewCost && (
+                  <TableCell>
+                    <span className={`font-mono text-xs ${profit >= 0 ? "text-success" : "text-destructive"}`} data-number>
+                      {profitMargin.toFixed(0)}%
+                    </span>
+                  </TableCell>
+                )}
                 <TableCell className="font-mono text-sm" data-number>
                   {p.quantity}
                   <span className="font-sans text-[10px] text-muted-foreground ml-0.5">{p.unit}</span>

@@ -19,6 +19,8 @@ export default async function NewProductPage({
   });
   if (!tenant) redirect("/");
 
+  const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
+
   const attrDefs = await prisma.attributeDefinition.findMany({
     where: { tenantId: tenant.id },
     select: { id: true, key: true, label: true, type: true },
@@ -29,7 +31,7 @@ export default async function NewProductPage({
   return (
     <div className="max-w-2xl space-y-6">
       <h2 className="text-2xl font-bold">New Product</h2>
-      <ProductForm tenantSlug={tenantSlug} currency={tenant.currency} attributeDefs={attrDefs} action={createWithSlug} />
+      <ProductForm tenantSlug={tenantSlug} currency={tenant.currency} attributeDefs={attrDefs} action={createWithSlug} canViewCost={canViewCost} />
     </div>
   );
 }

@@ -33,7 +33,7 @@ vi.mock("next/headers", () => ({ headers: vi.fn(() => new Headers()) }));
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { createShop, joinShopByCode, regenerateInviteCode, getInviteCode, removeMember } from "@/app/actions";
+import { createShop, joinShopByCode, regenerateInviteCode, getInviteCode, removeMember, toggleFinancials } from "@/app/actions";
 import { createAttribute, updateAttribute, deleteAttributeAction } from "@/app/actions/attributes";
 import { createProduct, updateProduct, deleteProduct } from "@/app/actions/products";
 import { recordMovement } from "@/app/actions/stock";
@@ -218,6 +218,50 @@ describe("removeMember", () => {
       data: { tenantId: null },
     });
     expect(revalidatePath).toHaveBeenCalled();
+  });
+});
+
+// ============================================================
+// TOGGLE FINANCIALS
+// ============================================================
+describe("toggleFinancials", () => {
+  it("returns error when no session", async () => {
+    auth.api.getSession.mockResolvedValue(null);
+    const r = await toggleFinancials(false);
+    expect(r).toEqual({ error: "Unauthorized", showFinancials: false });
+  });
+
+  it("returns error when not the owner", async () => {
+    auth.api.getSession.mockResolvedValue({ user: { id: "user-2", tenantId: "t1" } });
+    prisma.tenant.findFirst.mockResolvedValue(null);
+    const r = await toggleFinancials(false);
+    expect(r).toEqual({ error: "Only the shop owner can change this setting", showFinancials: false });
+  });
+
+  it("toggles on for owner", async () => {
+    auth.api.getSession.mockResolvedValue({ user: { id: "user-1", tenantId: "t1" } });
+    prisma.tenant.findFirst.mockResolvedValue({ id: "t1", slug: "my-shop", createdById: "user-1" });
+    prisma.tenant.update.mockResolvedValue({});
+
+    const r = await toggleFinancials(true);
+    expect(r).toEqual({ showFinancials: true });
+    expect(prisma.tenant.update).toHaveBeenCalledWith({
+      where: { id: "t1" },
+      data: { showFinancials: true },
+    });
+  });
+
+  it("toggles off for owner", async () => {
+    auth.api.getSession.mockResolvedValue({ user: { id: "user-1", tenantId: "t1" } });
+    prisma.tenant.findFirst.mockResolvedValue({ id: "t1", slug: "my-shop", createdById: "user-1" });
+    prisma.tenant.update.mockResolvedValue({});
+
+    const r = await toggleFinancials(false);
+    expect(r).toEqual({ showFinancials: false });
+    expect(prisma.tenant.update).toHaveBeenCalledWith({
+      where: { id: "t1" },
+      data: { showFinancials: false },
+    });
   });
 });
 

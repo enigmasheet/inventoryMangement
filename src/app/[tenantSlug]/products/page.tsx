@@ -49,6 +49,8 @@ export default async function ProductsPage({
     prisma.product.count({ where }),
   ]);
 
+  const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
+
   const products = rawProducts.map((p) => ({
     ...p,
     unitPrice: Number(p.unitPrice),
@@ -97,7 +99,7 @@ export default async function ProductsPage({
         />
       </form>
 
-      <ProductList tenantSlug={tenantSlug} currency={tenant.currency} products={products} />
+      <ProductList tenantSlug={tenantSlug} currency={tenant.currency} products={products} canViewCost={canViewCost} />
 
       <ProductPagination
         currentPage={currentPage}

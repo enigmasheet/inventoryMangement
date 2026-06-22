@@ -64,11 +64,17 @@ export default async function ProductDetailPage({
     statusClasses = "bg-success/10 text-success";
   }
 
+  const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
+
   const infoItems = [
     { icon: Hash, label: "SKU", value: product.sku, mono: true },
     { icon: DollarSign, label: "Selling Price", value: `${tenant.currency}${price.toFixed(2)}`, mono: true },
-    { icon: TrendingDown, label: "Cost Price", value: `${tenant.currency}${cost.toFixed(2)}`, mono: true },
-    { icon: TrendingUp, label: "Profit Margin", value: `${profitMargin.toFixed(1)}%`, mono: true, valueClass: profit >= 0 ? "text-success" : "text-destructive" },
+    ...(canViewCost
+      ? [
+          { icon: TrendingDown, label: "Cost Price", value: `${tenant.currency}${cost.toFixed(2)}`, mono: true } as const,
+          { icon: TrendingUp, label: "Profit Margin", value: `${profitMargin.toFixed(1)}%`, mono: true, valueClass: profit >= 0 ? "text-success" : "text-destructive" } as const,
+        ]
+      : []),
     { icon: Layers, label: "Quantity", value: `${product.quantity} ${product.unit}`, mono: true },
     { icon: Archive, label: "Low Stock Limit", value: product.lowStockLimit.toString(), mono: true },
   ];

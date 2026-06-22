@@ -25,9 +25,10 @@ type Props = {
     prevState: { error?: string } | null,
     formData: FormData
   ) => Promise<{ error?: string } | null>;
+  canViewCost?: boolean;
 };
 
-export function ProductForm({ tenantSlug, currency, attributeDefs, product, action }: Props) {
+export function ProductForm({ tenantSlug, currency, attributeDefs, product, action, canViewCost = true }: Props) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -112,17 +113,19 @@ export function ProductForm({ tenantSlug, currency, attributeDefs, product, acti
               <p className="text-xs text-destructive">{fieldErrors.unitPrice}</p>
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="costPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Cost Price ({currency})</Label>
-            <Input
-              id="costPrice"
-              name="costPrice"
-              type="number"
-              step="0.01"
-              min="0"
-              defaultValue={product?.costPrice.toString() ?? "0"}
-            />
-          </div>
+          {canViewCost && (
+            <div className="space-y-2">
+              <Label htmlFor="costPrice" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Cost Price ({currency})</Label>
+              <Input
+                id="costPrice"
+                name="costPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={product?.costPrice.toString() ?? "0"}
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="quantity" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Quantity</Label>
             <Input

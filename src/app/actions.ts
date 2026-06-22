@@ -185,6 +185,36 @@ export async function removeMember(
   return null;
 }
 
+export async function toggleFinancials(
+  showFinancials: boolean
+): Promise<{ error?: string; showFinancials?: boolean } | null> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.tenantId) {
+    log.warn("toggleFinancials rejected — no session");
+    return { error: "Unauthorized", showFinancials };
+  }
+
+  const tenant = await prisma.tenant.findFirst({
+    where: { id: session.user.tenantId, createdById: session.user.id },
+    select: { id: true, slug: true },
+  });
+  if (!tenant) {
+    log.warn("toggleFinancials rejected — not the owner");
+    return { error: "Only the shop owner can change this setting", showFinancials };
+  }
+
+  await prisma.tenant.update({
+    where: { id: tenant.id },
+    data: { showFinancials },
+  });
+
+  log.info("showFinancials toggled", { tenantId: tenant.id, showFinancials });
+  revalidatePath(`/${tenant.slug}/settings`);
+  revalidatePath(`/${tenant.slug}/products`);
+  revalidatePath(`/${tenant.slug}/dashboard`);
+  return { showFinancials };
+}
+
 export async function getInviteCode(): Promise<{ error?: string; inviteCode?: string | null } | null> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.tenantId) {
