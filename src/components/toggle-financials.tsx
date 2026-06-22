@@ -42,7 +42,7 @@ export function ToggleFinancials({ initialValue }: Props) {
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? "bg-accent" : "bg-muted"}`}
         >
           <span
-            className={`inline-block size-5 rounded-full bg-background shadow-sm border transition-transform ${checked ? "translate-x-5.5" : "translate-x-0.5"}`}
+            className={`inline-block size-5 rounded-full bg-background shadow-sm border transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`}
           />
         </button>
       </label>

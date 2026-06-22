@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import Link from "next/link";
 import Image from "next/image";
 import { SignInButton } from "@/components/sign-in-button";
+import { SignOutButton } from "@/components/sign-out-button";
 import { Package, TrendingUp, Bell, Settings, Store, ArrowRight, LayoutDashboard, BarChart3, Shield, Zap, Users } from "lucide-react";
 
 const features = [
@@ -45,18 +46,21 @@ export default async function HomePage() {
       <header className="border-b bg-card">
         <div className="flex h-12 items-center px-4 sm:px-6 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-2">
-            <Image src="/web/icons8-inventory-arcade-32.png" alt="" width={32} height={32} className="size-7" />
+            <Image src="/web/icons8-inventory-arcade-32.png" alt="" width={32} height={32} className="size-7" priority unoptimized />
             <span className="font-heading font-bold text-sm tracking-widest uppercase">Sajilo Inventory</span>
           </div>
           <div className="ml-auto">
             {tenantSlug ? (
-              <Link
-                href={`/${tenantSlug}/dashboard`}
-                className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
-              >
-                <LayoutDashboard className="size-3.5" />
-                Dashboard
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/${tenantSlug}/dashboard`}
+                  className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
+                >
+                  <LayoutDashboard className="size-3.5" />
+                  Dashboard
+                </Link>
+                <SignOutButton />
+              </div>
             ) : session?.user ? (
               <div className="flex items-center gap-2">
                 <Link
@@ -73,6 +77,7 @@ export default async function HomePage() {
                   <Store className="size-3.5" />
                   Create Shop
                 </Link>
+                <SignOutButton />
               </div>
             ) : null}
           </div>
