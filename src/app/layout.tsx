@@ -25,7 +25,6 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Sajilo Inventory",
   description: "Sajilo Inventory — Multitenant inventory management for small shop owners. Track stock, define custom fields, and manage your shop.",
-  manifest: "/manifest.json",
   icons: {
     icon: "/web/icons8-inventory-arcade-32.png",
     shortcut: "/web/icons8-inventory-arcade-16.png",
@@ -68,9 +67,6 @@ export default function RootLayout({
             },
           }}
         />
-        <Script id="sw-unregister" strategy="afterInteractive">
-          {`if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(function(regs) { for (var i = 0; i < regs.length; i++) regs[i].unregister(); }); }`}
-        </Script>
       </body>
     </html>
   );
