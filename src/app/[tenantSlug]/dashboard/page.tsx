@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { Package, AlertTriangle, DollarSign, TrendingUp } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/metric-card";
@@ -9,27 +10,39 @@ import { ExpiringProducts } from "@/components/dashboard/expiring-products";
 import { LowStockProducts } from "@/components/dashboard/low-stock-products";
 import { DashboardEmptyState } from "@/components/dashboard/empty-state";
 
-async function MetricsGrid({ tenantId, tenantSlug, currency, canViewCost }: { tenantId: string; tenantSlug: string; currency: string; canViewCost: boolean }) {
-  const [productCount, lowStockResult, stockValueResult, profitResult] =
-    await Promise.all([
-      prisma.product.count({ where: { tenantId } }),
-      prisma.$queryRaw<[{ count: bigint }]>`
-        SELECT COUNT(*)::bigint as count FROM "Product"
-        WHERE "tenantId" = ${tenantId} AND "quantity" <= "lowStockLimit"
-      `,
-      prisma.$queryRaw<[{ total: string | null }]>`
-        SELECT SUM(quantity * "unitPrice")::numeric(65,2) as total FROM "Product"
-        WHERE "tenantId" = ${tenantId}
-      `,
-      prisma.$queryRaw<[{ total: string | null }]>`
-        SELECT SUM(quantity * ("unitPrice" - "costPrice"))::numeric(65,2) as total FROM "Product"
-        WHERE "tenantId" = ${tenantId}
-      `,
-    ]);
 
-  const lowStockCount = Number(lowStockResult[0].count);
-  const stockValue = stockValueResult[0].total;
-  const totalProfit = profitResult[0].total;
+const getMetrics = unstable_cache(
+  async (tenantId: string) => {
+    const [productCount, lowStockResult, stockValueResult, profitResult] =
+      await Promise.all([
+        prisma.product.count({ where: { tenantId } }),
+        prisma.$queryRaw<[{ count: bigint }]>`
+          SELECT COUNT(*)::bigint as count FROM "Product"
+          WHERE "tenantId" = ${tenantId} AND "quantity" <= "lowStockLimit"
+        `,
+        prisma.$queryRaw<[{ total: string | null }]>`
+          SELECT SUM(quantity * "unitPrice")::numeric(65,2) as total FROM "Product"
+          WHERE "tenantId" = ${tenantId}
+        `,
+        prisma.$queryRaw<[{ total: string | null }]>`
+          SELECT SUM(quantity * ("unitPrice" - "costPrice"))::numeric(65,2) as total FROM "Product"
+          WHERE "tenantId" = ${tenantId}
+        `,
+      ]);
+
+    return {
+      productCount,
+      lowStockCount: Number(lowStockResult[0].count),
+      stockValue: stockValueResult[0].total,
+      totalProfit: profitResult[0].total,
+    };
+  },
+  undefined,
+  { revalidate: 30, tags: ["dashboard-metrics"] }
+);
+
+async function MetricsGrid({ tenantId, tenantSlug, currency, canViewCost }: { tenantId: string; tenantSlug: string; currency: string; canViewCost: boolean }) {
+  const { productCount, lowStockCount, stockValue, totalProfit } = await getMetrics(tenantId);
 
   const fmt = (v: string | null) =>
     `${currency}${Number(v ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -60,12 +73,20 @@ function MetricSkeleton() {
   );
 }
 
+const getActiveStockTake = unstable_cache(
+  async (tenantId: string) => {
+    return prisma.stockTake.findFirst({
+      where: { tenantId, status: "in_progress" },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, createdAt: true },
+    });
+  },
+  undefined,
+  { revalidate: 30, tags: ["dashboard-active-stock-take"] }
+);
+
 async function StockTakeSection({ tenantId, tenantSlug }: { tenantId: string; tenantSlug: string }) {
-  const activeStockTake = await prisma.stockTake.findFirst({
-    where: { tenantId, status: "in_progress" },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, createdAt: true },
-  });
+  const activeStockTake = await getActiveStockTake(tenantId);
   return <StockTakeCard tenantSlug={tenantSlug} activeStockTake={activeStockTake} />;
 }
 
@@ -73,22 +94,30 @@ function StockTakeSkeleton() {
   return <div className="rounded-lg border bg-card p-5 animate-pulse"><div className="h-3 w-32 bg-muted rounded mb-3" /><div className="h-4 w-24 bg-muted rounded" /></div>;
 }
 
+const getExpiringProducts = unstable_cache(
+  async (tenantId: string) => {
+    return prisma.$queryRaw<
+      { id: string; name: string; sku: string; expiryDate: Date }[]
+    >`
+      SELECT p.id, p.name, p.sku, pav.value::date as "expiryDate"
+      FROM "ProductAttributeValue" pav
+      JOIN "AttributeDefinition" ad ON ad.id = pav."attributeDefId"
+      JOIN "Product" p ON p.id = pav."productId"
+      WHERE p."tenantId" = ${tenantId}
+        AND ad.type = 'date'
+        AND pav.value IS NOT NULL
+        AND pav.value ~ '^\d{4}-\d{2}-\d{2}$'
+        AND pav.value::date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
+      ORDER BY pav.value::date ASC
+      LIMIT 10
+    `;
+  },
+  undefined,
+  { revalidate: 60, tags: ["dashboard-expiring"] }
+);
+
 async function ExpiringSection({ tenantId, tenantSlug }: { tenantId: string; tenantSlug: string }) {
-  const products = await prisma.$queryRaw<
-    { id: string; name: string; sku: string; expiryDate: Date }[]
-  >`
-    SELECT p.id, p.name, p.sku, pav.value::date as "expiryDate"
-    FROM "ProductAttributeValue" pav
-    JOIN "AttributeDefinition" ad ON ad.id = pav."attributeDefId"
-    JOIN "Product" p ON p.id = pav."productId"
-    WHERE p."tenantId" = ${tenantId}
-      AND ad.type = 'date'
-      AND pav.value IS NOT NULL
-      AND pav.value ~ '^\d{4}-\d{2}-\d{2}$'
-      AND pav.value::date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
-    ORDER BY pav.value::date ASC
-    LIMIT 10
-  `;
+  const products = await getExpiringProducts(tenantId);
   return <ExpiringProducts tenantSlug={tenantSlug} products={products} />;
 }
 
@@ -103,14 +132,22 @@ function ListSkeleton() {
   );
 }
 
+const getLowStockProducts = unstable_cache(
+  async (tenantId: string) => {
+    return prisma.$queryRaw<
+      { id: string; name: string; sku: string; quantity: number; lowStockLimit: number; unit: string }[]
+    >`
+      SELECT id, name, sku, quantity, "lowStockLimit", unit FROM "Product"
+      WHERE "tenantId" = ${tenantId} AND "quantity" <= "lowStockLimit"
+      ORDER BY quantity ASC LIMIT 10
+    `;
+  },
+  undefined,
+  { revalidate: 30, tags: ["dashboard-low-stock"] }
+);
+
 async function LowStockSection({ tenantId, tenantSlug }: { tenantId: string; tenantSlug: string }) {
-  const products = await prisma.$queryRaw<
-    { id: string; name: string; sku: string; quantity: number; lowStockLimit: number; unit: string }[]
-  >`
-    SELECT id, name, sku, quantity, "lowStockLimit", unit FROM "Product"
-    WHERE "tenantId" = ${tenantId} AND "quantity" <= "lowStockLimit"
-    ORDER BY quantity ASC LIMIT 10
-  `;
+  const products = await getLowStockProducts(tenantId);
   return <LowStockProducts tenantSlug={tenantSlug} products={products} />;
 }
 

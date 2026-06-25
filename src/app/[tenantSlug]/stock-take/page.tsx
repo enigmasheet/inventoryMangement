@@ -3,18 +3,22 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { startStockTakeAction } from "@/app/actions/stock-take";
 import { StockTakeListError } from "@/components/stock-take-list-error";
+import { StockTakePagination } from "@/components/stock-take-pagination";
 import { ClipboardList, CheckCircle2, Clock, XCircle, Plus } from "lucide-react";
 import Link from "next/link";
+
+const PER_PAGE = 20;
 
 export default async function StockTakeListPage({
   params,
   searchParams,
 }: {
   params: Promise<{ tenantSlug: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; page?: string }>;
 }) {
   const { tenantSlug } = await params;
-  const { error } = await searchParams;
+  const { error, page } = await searchParams;
+  const currentPage = Math.max(1, Number(page) || 1);
   const session = await getSession();
   if (!session?.user.tenantId) redirect("/");
 
@@ -23,15 +27,22 @@ export default async function StockTakeListPage({
   });
   if (!tenant) redirect("/");
 
-  const stockTakes = await prisma.stockTake.findMany({
-    where: { tenantId: tenant.id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      items: { select: { id: true, countedQuantity: true, expectedQuantity: true } },
-    },
-  });
-
-  const hasActiveStockTake = stockTakes.some((st) => st.status === "in_progress");
+  const [stockTakes, total, hasActiveStockTake] = await Promise.all([
+    prisma.stockTake.findMany({
+      where: { tenantId: tenant.id },
+      orderBy: { createdAt: "desc" },
+      skip: (currentPage - 1) * PER_PAGE,
+      take: PER_PAGE,
+      include: {
+        items: { select: { id: true, countedQuantity: true, expectedQuantity: true } },
+      },
+    }),
+    prisma.stockTake.count({ where: { tenantId: tenant.id } }),
+    prisma.stockTake.findFirst({
+      where: { tenantId: tenant.id, status: "in_progress" },
+      select: { id: true },
+    }).then(Boolean),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -114,6 +125,12 @@ export default async function StockTakeListPage({
           </div>
         </div>
       )}
+
+      <StockTakePagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(total / PER_PAGE)}
+        basePath={`/${tenantSlug}/stock-take`}
+      />
     </div>
   );
 }

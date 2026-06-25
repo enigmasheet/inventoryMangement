@@ -17,6 +17,7 @@ const createAttributeSchema = z.object({
 });
 
 export async function createAttribute(
+  tenantSlug: string,
   _prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string } | null> {
@@ -49,15 +50,12 @@ export async function createAttribute(
   }
 
   log.info("attribute definition created", { key: parsed.data.key, label: parsed.data.label });
-  const tenant = await prisma.tenant.findFirst({
-    where: { id: session.user.tenantId },
-    select: { slug: true },
-  });
-  if (tenant) revalidatePath(`/${tenant.slug}/settings`);
+  revalidatePath(`/${tenantSlug}/settings`);
   return null;
 }
 
 export async function updateAttribute(
+  tenantSlug: string,
   attributeId: string,
   _prevState: { error?: string } | null,
   formData: FormData
@@ -100,15 +98,11 @@ export async function updateAttribute(
   }
 
   log.info("attribute definition updated", { attributeId, key: parsed.data.key });
-  const tenant = await prisma.tenant.findFirst({
-    where: { id: session.user.tenantId! },
-    select: { slug: true },
-  });
-  if (tenant) revalidatePath(`/${tenant.slug}/settings`);
+  revalidatePath(`/${tenantSlug}/settings`);
   return null;
 }
 
-async function _deleteAttribute(attributeId: string): Promise<{ error?: string } | null> {
+async function _deleteAttribute(tenantSlug: string, attributeId: string): Promise<{ error?: string } | null> {
   const session = await getSession();
   if (!session?.user.tenantId) {
     log.warn("deleteAttribute rejected — no session");
@@ -131,23 +125,12 @@ async function _deleteAttribute(attributeId: string): Promise<{ error?: string }
   ]);
 
   log.info("attribute definition deleted", { attributeId, key: def.key });
-  const tenant = await prisma.tenant.findFirst({
-    where: { id: session.user.tenantId! },
-    select: { slug: true },
-  });
-  if (tenant) revalidatePath(`/${tenant.slug}/settings`);
+  revalidatePath(`/${tenantSlug}/settings`);
   return null;
 }
 
-export async function deleteAttributeAction(attributeId: string): Promise<void> {
-  const result = await _deleteAttribute(attributeId);
+export async function deleteAttributeAction(tenantSlug: string, attributeId: string): Promise<void> {
+  const result = await _deleteAttribute(tenantSlug, attributeId);
   if (!result?.error) return;
-  const session = await getSession();
-  if (session?.user.tenantId) {
-    const tenant = await prisma.tenant.findFirst({
-      where: { id: session.user.tenantId },
-      select: { slug: true },
-    });
-    if (tenant) redirect(`/${tenant.slug}/settings?error=${encodeURIComponent(result.error)}`);
-  }
+  redirect(`/${tenantSlug}/settings?error=${encodeURIComponent(result.error)}`);
 }

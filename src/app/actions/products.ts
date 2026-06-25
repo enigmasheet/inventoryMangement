@@ -76,6 +76,7 @@ export async function createProduct(
           ...parsed.data,
           attributes: { create: attrs },
         },
+        select: { id: true },
       });
     });
   } catch (e: unknown) {
@@ -126,16 +127,12 @@ export async function updateProduct(
     }
   }
 
-  const tenant = await prisma.tenant.findFirst({
-    where: { id: session.user.tenantId },
-    select: { slug: true },
-  });
-
   try {
     await prisma.$transaction(async (tx) => {
       await tx.product.update({
         where: { id: productId },
         data: parsed.data,
+        select: { id: true },
       });
 
       await tx.productAttributeValue.deleteMany({
@@ -160,7 +157,7 @@ export async function updateProduct(
   }
 
   log.info("product updated", { productId, name: parsed.data.name });
-  redirect(`/${tenant?.slug ?? tenantSlug}/products`);
+  redirect(`/${tenantSlug}/products`);
 }
 
 export async function deleteProduct(productId: string, tenantSlug: string): Promise<{ error?: string } | null> {
@@ -182,20 +179,10 @@ export async function deleteProduct(productId: string, tenantSlug: string): Prom
     return { error: "Not found" };
   }
 
-  const tenant = await prisma.tenant.findFirst({
-    where: { id: session.user.tenantId },
-    select: { slug: true },
-  });
-
-  await prisma.$transaction([
-    prisma.productAttributeValue.deleteMany({ where: { productId } }),
-    prisma.stockMovement.deleteMany({ where: { productId } }),
-    prisma.product.delete({ where: { id: productId } }),
-  ]);
+  await prisma.product.delete({ where: { id: productId } });
 
   log.info("product deleted", { productId, name: product.name });
-  const slug = tenant?.slug ?? tenantSlug;
-  revalidatePath(`/${slug}/products`);
-  revalidatePath(`/${slug}/dashboard`);
+  revalidatePath(`/${tenantSlug}/products`);
+  revalidatePath(`/${tenantSlug}/dashboard`);
   return null;
 }

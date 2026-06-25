@@ -271,20 +271,19 @@ describe("toggleFinancials", () => {
 describe("createAttribute", () => {
   it("returns error when no session", async () => {
     auth.api.getSession.mockResolvedValue(null);
-    expect(await createAttribute(null, form({ key: "x", label: "X", type: "text" }))).toEqual({ error: "Unauthorized" });
+    expect(await createAttribute("my-shop", null, form({ key: "x", label: "X", type: "text" }))).toEqual({ error: "Unauthorized" });
   });
 
   it("returns validation error for missing key", async () => {
     auth.api.getSession.mockResolvedValue({ user: { id: "u1", tenantId: "t1" } });
-    expect(await createAttribute(null, form({ key: "", label: "X", type: "text" }))).toMatchObject({ error: expect.any(String) });
+    expect(await createAttribute("my-shop", null, form({ key: "", label: "X", type: "text" }))).toMatchObject({ error: expect.any(String) });
   });
 
   it("creates attribute on success", async () => {
     auth.api.getSession.mockResolvedValue({ user: { id: "u1", tenantId: "t1" } });
-    prisma.tenant.findFirst.mockResolvedValue({ slug: "my-shop" });
     prisma.attributeDefinition.create.mockResolvedValue({});
 
-    const r = await createAttribute(null, form({ key: "size", label: "Size", type: "text" }));
+    const r = await createAttribute("my-shop", null, form({ key: "size", label: "Size", type: "text" }));
     expect(r).toBeNull();
     expect(prisma.attributeDefinition.create).toHaveBeenCalledWith({
       data: { key: "size", label: "Size", type: "text", tenantId: "t1" },
@@ -293,10 +292,9 @@ describe("createAttribute", () => {
 
   it("returns error for duplicate key", async () => {
     auth.api.getSession.mockResolvedValue({ user: { id: "u1", tenantId: "t1" } });
-    prisma.tenant.findFirst.mockResolvedValue({ slug: "my-shop" });
     prisma.attributeDefinition.create.mockRejectedValue({ code: "P2002" });
 
-    expect(await createAttribute(null, form({ key: "size", label: "Size", type: "text" }))).toEqual(
+    expect(await createAttribute("my-shop", null, form({ key: "size", label: "Size", type: "text" }))).toEqual(
       { error: expect.stringContaining("already exists") }
     );
   });
@@ -305,22 +303,21 @@ describe("createAttribute", () => {
 describe("updateAttribute", () => {
   it("returns error when no session", async () => {
     auth.api.getSession.mockResolvedValue(null);
-    expect(await updateAttribute("a1", null, form({ key: "x", label: "X", type: "text" }))).toEqual({ error: "Unauthorized" });
+    expect(await updateAttribute("my-shop", "a1", null, form({ key: "x", label: "X", type: "text" }))).toEqual({ error: "Unauthorized" });
   });
 
   it("returns not found for cross-tenant", async () => {
     auth.api.getSession.mockResolvedValue({ user: { id: "u1", tenantId: "t1" } });
     prisma.attributeDefinition.findFirst.mockResolvedValue(null);
-    expect(await updateAttribute("a1", null, form({ key: "x", label: "X", type: "text" }))).toEqual({ error: "Not found" });
+    expect(await updateAttribute("my-shop", "a1", null, form({ key: "x", label: "X", type: "text" }))).toEqual({ error: "Not found" });
   });
 
   it("updates on success", async () => {
     auth.api.getSession.mockResolvedValue({ user: { id: "u1", tenantId: "t1" } });
     prisma.attributeDefinition.findFirst.mockResolvedValue({ id: "a1", tenantId: "t1" });
-    prisma.tenant.findFirst.mockResolvedValue({ slug: "my-shop" });
     prisma.attributeDefinition.update.mockResolvedValue({});
 
-    expect(await updateAttribute("a1", null, form({ key: "size", label: "Size", type: "text" }))).toBeNull();
+    expect(await updateAttribute("my-shop", "a1", null, form({ key: "size", label: "Size", type: "text" }))).toBeNull();
   });
 });
 
@@ -328,10 +325,9 @@ describe("deleteAttributeAction", () => {
   it("does not throw on success", async () => {
     auth.api.getSession.mockResolvedValue({ user: { id: "u1", tenantId: "t1" } });
     prisma.attributeDefinition.findFirst.mockResolvedValue({ id: "a1", tenantId: "t1", key: "x" });
-    prisma.tenant.findFirst.mockResolvedValue({ slug: "my-shop" });
     prisma.$transaction.mockResolvedValue([]);
 
-    await expect(deleteAttributeAction("a1")).resolves.toBeUndefined();
+    await expect(deleteAttributeAction("my-shop", "a1")).resolves.toBeUndefined();
   });
 });
 
@@ -381,7 +377,6 @@ describe("updateProduct", () => {
   it("updates on success", async () => {
     auth.api.getSession.mockResolvedValue({ user: { id: "u1", tenantId: "t1" } });
     prisma.product.findFirst.mockResolvedValue(mockProduct);
-    prisma.tenant.findFirst.mockResolvedValue({ slug: "my-shop" });
     prisma.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === "function") await cb(prisma);
     });
@@ -405,8 +400,7 @@ describe("deleteProduct", () => {
   it("deletes on success", async () => {
     auth.api.getSession.mockResolvedValue({ user: { id: "u1", tenantId: "t1" } });
     prisma.product.findFirst.mockResolvedValue(mockProduct);
-    prisma.tenant.findFirst.mockResolvedValue({ slug: "my-shop" });
-    prisma.$transaction.mockResolvedValue([]);
+    prisma.product.delete.mockResolvedValue({});
 
     expect(await deleteProduct("p1", "ms")).toBeNull();
     expect(revalidatePath).toHaveBeenCalled();

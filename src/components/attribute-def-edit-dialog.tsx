@@ -19,13 +19,14 @@ import { Pencil } from "lucide-react";
 const types = ATTRIBUTE_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }));
 
 type Props = {
+  tenantSlug: string;
   def: { id: string; key: string; label: string; type: string };
 };
 
-export function AttributeDefEditDialog({ def }: Props) {
+export function AttributeDefEditDialog({ tenantSlug, def }: Props) {
   const [open, setOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const boundAction = updateAttribute.bind(null, def.id);
+  const boundAction = updateAttribute.bind(null, tenantSlug, def.id);
   const [state, formAction, pending] = useActionState(boundAction, null);
   const submittedRef = useRef(false);
 

@@ -110,7 +110,7 @@ model Product {
   @@index([tenantId])
 }
 
-model ProductAttributeValue {
+model   ProductAttributeValue {
   id             String              @id @default(cuid())
   productId      String
   product        Product             @relation(fields: [productId], references: [id])
@@ -119,6 +119,7 @@ model ProductAttributeValue {
   value          String
 
   @@index([productId])
+  @@index([attributeDefId])
 }
 
 model StockMovement {
@@ -126,13 +127,14 @@ model StockMovement {
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
   productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   type      String
   quantity  Int
   note      String?
   createdAt DateTime @default(now())
 
   @@index([tenantId, productId])
+  @@index([productId])
 }
 
 model StockTake {
@@ -153,10 +155,11 @@ model StockTakeItem {
   stockTakeId      String
   stockTake        StockTake @relation(fields: [stockTakeId], references: [id], onDelete: Cascade)
   productId        String
-  product          Product   @relation(fields: [productId], references: [id])
+  product          Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   expectedQuantity Int
   countedQuantity  Int?
 
   @@unique([stockTakeId, productId])
   @@index([stockTakeId])
+  @@index([productId])
 }

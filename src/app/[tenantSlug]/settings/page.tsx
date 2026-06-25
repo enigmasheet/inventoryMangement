@@ -64,7 +64,7 @@ export default async function SettingsPage({
 
       <div className="border bg-card p-4 space-y-5">
         <h3 className="font-heading font-bold text-xs uppercase tracking-wider">Add a Field</h3>
-        <AttributeDefForm />
+        <AttributeDefForm tenantSlug={tenantSlug} />
       </div>
 
       {defs.length > 0 ? (
@@ -87,8 +87,8 @@ export default async function SettingsPage({
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <AttributeDefEditDialog def={def} />
-                  <form action={deleteAttributeAction.bind(null, def.id)}>
+                  <AttributeDefEditDialog tenantSlug={tenantSlug} def={def} />
+                  <form action={deleteAttributeAction.bind(null, tenantSlug, def.id)}>
                     <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
                       <Trash2 className="size-3.5" />
                     </Button>

@@ -82,17 +82,9 @@ export async function cancelStockTakeAction(tenantSlug: string, stockTakeId: str
     redirect(`/${tenantSlug}/stock-take/${stockTakeId}?error=${encodeURIComponent("Unauthorized")}`);
     return;
   }
-  const tenant = await prisma.tenant.findFirst({
-    where: { id: session.user.tenantId },
-    select: { slug: true },
-  });
-  if (!tenant) {
-    redirect(`/${tenantSlug}/stock-take/${stockTakeId}?error=${encodeURIComponent("Not found")}`);
-    return;
-  }
   const result = await _cancelStockTake(stockTakeId);
   if (result?.error) {
-    redirect(`/${tenant.slug}/stock-take/${stockTakeId}?error=${encodeURIComponent(result.error)}`);
+    redirect(`/${tenantSlug}/stock-take/${stockTakeId}?error=${encodeURIComponent(result.error)}`);
   }
-  redirect(`/${tenant.slug}/stock-take`);
+  redirect(`/${tenantSlug}/stock-take`);
 }

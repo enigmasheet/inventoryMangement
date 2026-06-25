@@ -11,8 +11,8 @@ import { ATTRIBUTE_TYPES } from "@/lib/constants";
 
 const types = ATTRIBUTE_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }));
 
-export function AttributeDefForm() {
-  const [state, formAction, pending] = useActionState(createAttribute, null);
+export function AttributeDefForm({ tenantSlug }: { tenantSlug: string }) {
+  const [state, formAction, pending] = useActionState(createAttribute.bind(null, tenantSlug), null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
   const submittedRef = useRef(false);
