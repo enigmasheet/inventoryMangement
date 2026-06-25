@@ -1,9 +1,16 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateTable
 CREATE TABLE "Tenant" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "shopName" TEXT NOT NULL,
     "category" TEXT NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'रू',
+    "inviteCode" TEXT,
+    "createdById" TEXT,
+    "showFinancials" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Tenant_pkey" PRIMARY KEY ("id")
@@ -86,8 +93,10 @@ CREATE TABLE "Product" (
     "name" TEXT NOT NULL,
     "sku" TEXT NOT NULL,
     "unitPrice" DECIMAL(65,30) NOT NULL,
+    "costPrice" DECIMAL(65,30) NOT NULL DEFAULT 0,
     "quantity" INTEGER NOT NULL DEFAULT 0,
     "lowStockLimit" INTEGER NOT NULL DEFAULT 5,
+    "unit" TEXT NOT NULL DEFAULT 'pcs',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
@@ -116,14 +125,43 @@ CREATE TABLE "StockMovement" (
     CONSTRAINT "StockMovement_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "StockTake" (
+    "id" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'in_progress',
+    "note" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completedAt" TIMESTAMP(3),
+
+    CONSTRAINT "StockTake_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "StockTakeItem" (
+    "id" TEXT NOT NULL,
+    "stockTakeId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "expectedQuantity" INTEGER NOT NULL,
+    "countedQuantity" INTEGER,
+
+    CONSTRAINT "StockTakeItem_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Tenant_slug_key" ON "Tenant"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Tenant_inviteCode_key" ON "Tenant"("inviteCode");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Session_token_key" ON "Session"("token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AttributeDefinition_tenantId_key_key" ON "AttributeDefinition"("tenantId", "key");
 
 -- CreateIndex
 CREATE INDEX "Product_tenantId_idx" ON "Product"("tenantId");
@@ -135,7 +173,28 @@ CREATE UNIQUE INDEX "Product_tenantId_sku_key" ON "Product"("tenantId", "sku");
 CREATE INDEX "ProductAttributeValue_productId_idx" ON "ProductAttributeValue"("productId");
 
 -- CreateIndex
+CREATE INDEX "ProductAttributeValue_attributeDefId_idx" ON "ProductAttributeValue"("attributeDefId");
+
+-- CreateIndex
 CREATE INDEX "StockMovement_tenantId_productId_idx" ON "StockMovement"("tenantId", "productId");
+
+-- CreateIndex
+CREATE INDEX "StockMovement_productId_idx" ON "StockMovement"("productId");
+
+-- CreateIndex
+CREATE INDEX "StockTake_tenantId_idx" ON "StockTake"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "StockTakeItem_stockTakeId_idx" ON "StockTakeItem"("stockTakeId");
+
+-- CreateIndex
+CREATE INDEX "StockTakeItem_productId_idx" ON "StockTakeItem"("productId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "StockTakeItem_stockTakeId_productId_key" ON "StockTakeItem"("stockTakeId", "productId");
+
+-- AddForeignKey
+ALTER TABLE "Tenant" ADD CONSTRAINT "Tenant_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -162,4 +221,13 @@ ALTER TABLE "ProductAttributeValue" ADD CONSTRAINT "ProductAttributeValue_attrib
 ALTER TABLE "StockMovement" ADD CONSTRAINT "StockMovement_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "StockMovement" ADD CONSTRAINT "StockMovement_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "StockMovement" ADD CONSTRAINT "StockMovement_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "StockTake" ADD CONSTRAINT "StockTake_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "StockTakeItem" ADD CONSTRAINT "StockTakeItem_stockTakeId_fkey" FOREIGN KEY ("stockTakeId") REFERENCES "StockTake"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "StockTakeItem" ADD CONSTRAINT "StockTakeItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
