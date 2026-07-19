@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-const STATIC_SKIP = ["/_next", "/api/"];
+const STATIC_SKIP = ["/_next", "/api/", "/web/"];
 
 export default async function proxy(request: Request) {
   const url = new URL(request.url);

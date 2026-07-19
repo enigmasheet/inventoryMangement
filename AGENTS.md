@@ -97,3 +97,8 @@ Phases are strictly sequential: 0 → 1 → 2 → 3 → 4 → 5. Do not skip pha
 
 ## Source of Truth
 Full project plan at `docs/multitenant-inventory-project-plan.md`. Read it for schema details, auth flow diagram, and phase-by-phase acceptance criteria.
+
+## Project Synopsis (Academic Submission)
+- `docs/report/project-synopsis.md` — Markdown version of the synopsis (for reference/editing)
+- `docs/report/project-synopsis.docx` — DOCX version (for academic submission, ready to print)
+- `docs/report/generate_synopsis_docx.py` — Python script to regenerate the DOCX from scratch
