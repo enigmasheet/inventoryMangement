@@ -3,10 +3,18 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { LayoutDashboard, Package, Settings, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Package, Settings, ClipboardList, Menu } from "lucide-react";
 import { createLogger } from "@/lib/logger";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 const log = createLogger("layout:tenant");
 
@@ -63,7 +71,37 @@ export default async function TenantLayout({
               {tenant.category}
             </span>
           </div>
-          <nav className="ml-auto flex items-center gap-0.5 text-xs">
+          {/* Mobile hamburger */}
+          <div className="sm:hidden ml-auto flex items-center gap-1">
+            <Sheet>
+              <SheetTrigger render={<Button variant="ghost" size="sm" className="text-muted-foreground" />}>
+                <Menu className="size-4" />
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64">
+                <SheetHeader>
+                  <SheetTitle className="font-heading font-bold text-sm uppercase tracking-wider">{tenant.shopName}</SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col gap-1 mt-6">
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={`/${tenantSlug}${item.href}`}
+                      className="flex items-center gap-3 px-3 py-2 text-sm font-heading font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                    >
+                      <item.icon className="size-4" />
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+                <div className="border-t mt-4 pt-4 flex items-center gap-2 px-3">
+                  <ThemeToggle />
+                  <SignOutButton />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+          {/* Desktop nav */}
+          <nav className="hidden sm:flex items-center gap-0.5 text-xs ml-auto">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -71,12 +109,13 @@ export default async function TenantLayout({
                 className="flex items-center gap-1 px-2.5 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150 font-heading font-bold uppercase tracking-wider"
               >
                 <item.icon className="size-3.5" />
-                <span className="hidden sm:inline">{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-1 pl-2 border-l">
-            <span className="hidden sm:block text-[11px] font-sans text-muted-foreground max-w-28 truncate">
+          {/* Desktop user section */}
+          <div className="hidden sm:flex items-center gap-1 pl-2 border-l">
+            <span className="text-[11px] font-sans text-muted-foreground max-w-28 truncate">
               {session.user.email}
             </span>
             <ThemeToggle />

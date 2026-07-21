@@ -25,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Pencil, Trash2 } from "lucide-react";
 
 type ProductRow = {
@@ -127,18 +128,21 @@ export function ProductList({ tenantSlug, currency, products, canViewCost = true
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => router.push(`/${tenantSlug}/products/${p.id}/edit`)}
-                      className="text-muted-foreground hover:text-foreground"
-                      aria-label={`Edit ${p.name}`}
-                    >
-                      <Pencil className="size-3.5" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger render={<Button variant="ghost" size="sm" onClick={() => router.push(`/${tenantSlug}/products/${p.id}/edit`)} className="text-muted-foreground hover:text-foreground" aria-label={`Edit ${p.name}`} />}>
+                        <Pencil className="size-3.5" />
+                      </TooltipTrigger>
+                      <TooltipContent>Edit {p.name}</TooltipContent>
+                    </Tooltip>
                     <AlertDialog>
-                      <AlertDialogTrigger render={<Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" />}>
-                        <Trash2 className="size-3.5" />
+                      <AlertDialogTrigger render={
+                        <Tooltip>
+                          <TooltipTrigger render={<Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" />}>
+                            <Trash2 className="size-3.5" />
+                          </TooltipTrigger>
+                          <TooltipContent>Delete {p.name}</TooltipContent>
+                        </Tooltip>
+                      }>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

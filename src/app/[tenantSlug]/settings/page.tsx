@@ -9,6 +9,7 @@ import { MemberListSection } from "@/components/member-list-section";
 import { ToggleFinancials } from "@/components/toggle-financials";
 import { UrlErrorToast } from "@/components/url-error-toast";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Sliders, Trash2 } from "lucide-react";
 
 export default async function SettingsPage({
@@ -50,7 +51,7 @@ export default async function SettingsPage({
   const isOwner = tenant.createdById === session.user.id;
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-6 max-w-2xl">
       <UrlErrorToast error={error} />
       <h1 className="font-heading font-bold text-lg tracking-wider uppercase">Settings</h1>
 
@@ -89,9 +90,12 @@ export default async function SettingsPage({
                 <div className="flex items-center gap-1">
                   <AttributeDefEditDialog tenantSlug={tenantSlug} def={def} />
                   <form action={deleteAttributeAction.bind(null, tenantSlug, def.id)}>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
-                      <Trash2 className="size-3.5" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger render={<Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" />}>
+                        <Trash2 className="size-3.5" />
+                      </TooltipTrigger>
+                      <TooltipContent>Delete {def.label}</TooltipContent>
+                    </Tooltip>
                   </form>
                 </div>
               </div>

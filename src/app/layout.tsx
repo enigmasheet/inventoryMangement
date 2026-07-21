@@ -3,6 +3,7 @@ import { Barlow_Condensed, Work_Sans, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeSync } from "@/components/theme-sync";
 import "./globals.css";
 
 const barlow = Barlow_Condensed({
@@ -45,6 +46,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <meta name="view-transition" content="same-origin" />
         <Script id="theme-init" strategy="beforeInteractive">
           {`(function() {
             var t = localStorage.getItem("theme");
@@ -65,7 +67,10 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="min-h-full flex flex-col">
-        <TooltipProvider>{children}</TooltipProvider>
+        <TooltipProvider>
+          <ThemeSync />
+          {children}
+        </TooltipProvider>
         <Toaster
           position="top-right"
           richColors

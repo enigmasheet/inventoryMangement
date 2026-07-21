@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 type Member = {
   id: string;
@@ -82,8 +83,14 @@ export function MemberListSection({ members, ownerId }: Props) {
               </div>
               {!isOwner && (
                 <AlertDialog>
-                  <AlertDialogTrigger render={<Button variant="ghost" size="sm" disabled={removingId === member.id} className="shrink-0 text-muted-foreground hover:text-destructive" />}>
-                    <X className="size-3.5" />
+                  <AlertDialogTrigger render={
+                    <Tooltip>
+                      <TooltipTrigger render={<Button variant="ghost" size="sm" disabled={removingId === member.id} className="shrink-0 text-muted-foreground hover:text-destructive" />}>
+                        <X className="size-3.5" />
+                      </TooltipTrigger>
+                      <TooltipContent>Remove {member.name}</TooltipContent>
+                    </Tooltip>
+                  }>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>

@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { ATTRIBUTE_TYPES } from "@/lib/constants";
 import { Pencil } from "lucide-react";
 
@@ -70,8 +71,14 @@ export function AttributeDefEditDialog({ tenantSlug, def }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="ghost" size="sm" />}>
-        <Pencil className="size-3.5 text-muted-foreground hover:text-foreground" />
+      <DialogTrigger render={
+        <Tooltip>
+          <TooltipTrigger render={<Button variant="ghost" size="sm" />}>
+            <Pencil className="size-3.5 text-muted-foreground hover:text-foreground" />
+          </TooltipTrigger>
+          <TooltipContent>Edit {def.label}</TooltipContent>
+        </Tooltip>
+      }>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
