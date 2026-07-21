@@ -3,12 +3,13 @@
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function TenantError({
-  error,
+  error: _error,
   reset,
 }: {
-  error: Error;
+  error: Error & { digest?: string };
   reset: () => void;
 }) {
+  void _error;
   return (
     <div className="flex flex-col items-center justify-center gap-5 py-24">
       <div className="size-10 flex items-center justify-center bg-destructive/10">
@@ -17,7 +18,7 @@ export default function TenantError({
       <div className="text-center space-y-1">
         <p className="font-heading font-bold text-sm uppercase tracking-wider">Something went wrong</p>
         <p className="text-sm font-sans text-muted-foreground max-w-sm">
-          {error.message || "An unexpected error occurred. Please try again."}
+          An unexpected error occurred. Please try again.
         </p>
       </div>
       <button

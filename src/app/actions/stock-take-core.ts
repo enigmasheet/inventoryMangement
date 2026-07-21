@@ -95,11 +95,6 @@ export async function completeStockTake(
   }
 
   await prisma.$transaction(async (tx) => {
-    await tx.stockTake.update({
-      where: { id: stockTakeId },
-      data: { status: STOCK_TAKE_STATUS.COMPLETED, completedAt: new Date() },
-    });
-
     if (applyAdjustments) {
       const discrepantIds = stockTake.items
         .filter((i) => i.countedQuantity !== null && i.countedQuantity !== i.expectedQuantity)
@@ -135,6 +130,11 @@ export async function completeStockTake(
         }
       }
     }
+
+    await tx.stockTake.update({
+      where: { id: stockTakeId },
+      data: { status: STOCK_TAKE_STATUS.COMPLETED, completedAt: new Date() },
+    });
   });
 
   log.info("stock take completed", { stockTakeId, applyAdjustments });

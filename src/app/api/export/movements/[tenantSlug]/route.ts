@@ -22,18 +22,23 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
+  const MAX_EXPORT = 10000;
+  const total = await prisma.stockMovement.count({ where: { tenantId: tenant.id } });
   const movements = await prisma.stockMovement.findMany({
     where: { tenantId: tenant.id },
     include: { product: { select: { name: true, sku: true } } },
     orderBy: { createdAt: "desc" },
+    take: MAX_EXPORT,
   });
 
   const header = "Date,Product,SKU,Type,Quantity,Note";
+  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
   const rows = movements.map(
     (m) =>
-      `"${m.createdAt.toISOString().split("T")[0]}","${m.product.name}","${m.product.sku}",${m.type},${m.quantity},"${m.note ?? ""}"`
+      `${esc(m.createdAt.toISOString().split("T")[0])},${esc(m.product.name)},${esc(m.product.sku)},${m.type},${m.quantity},${esc(m.note ?? "")}`
   );
-  const csv = [header, ...rows].join("\n");
+  const truncated = total > MAX_EXPORT ? `# Note: Export limited to ${MAX_EXPORT} of ${total} movements.\n` : "";
+  const csv = [header, ...rows, truncated].join("\n");
 
   return new NextResponse(csv, {
     headers: {

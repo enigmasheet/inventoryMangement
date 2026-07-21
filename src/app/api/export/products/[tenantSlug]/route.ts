@@ -24,21 +24,26 @@ export async function GET(
 
   const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
 
+  const MAX_EXPORT = 10000;
+  const total = await prisma.product.count({ where: { tenantId: tenant.id } });
   const products = await prisma.product.findMany({
     where: { tenantId: tenant.id },
     select: { name: true, sku: true, unitPrice: true, costPrice: true, quantity: true, unit: true, lowStockLimit: true },
     orderBy: { name: "asc" },
+    take: MAX_EXPORT,
   });
 
   const header = canViewCost
     ? "Name,SKU,Selling Price,Cost Price,Quantity,Unit,Low Stock Limit"
     : "Name,SKU,Selling Price,Quantity,Unit,Low Stock Limit";
-  const rows = products.map((p) =>
-    canViewCost
-      ? `"${p.name}","${p.sku}",${p.unitPrice},${p.costPrice},${p.quantity},"${p.unit}",${p.lowStockLimit}`
-      : `"${p.name}","${p.sku}",${p.unitPrice},${p.quantity},"${p.unit}",${p.lowStockLimit}`
-  );
-  const csv = [header, ...rows].join("\n");
+  const rows = products.map((p) => {
+      const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    return canViewCost
+      ? `${esc(p.name)},${esc(p.sku)},${p.unitPrice},${p.costPrice},${p.quantity},${esc(p.unit)},${p.lowStockLimit}`
+      : `${esc(p.name)},${esc(p.sku)},${p.unitPrice},${p.quantity},${esc(p.unit)},${p.lowStockLimit}`;
+  });
+  const truncated = total > MAX_EXPORT ? `# Note: Export limited to ${MAX_EXPORT} of ${total} products.\n` : "";
+  const csv = [header, ...rows, truncated].join("\n");
 
   return new NextResponse(csv, {
     headers: {

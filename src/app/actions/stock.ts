@@ -48,13 +48,24 @@ export async function recordMovement(
   try {
     await prisma.$transaction(async (tx) => {
       if (parsed.data.type === "OUT") {
-        const current = await tx.product.findUnique({
-          where: { id: productId },
-          select: { quantity: true },
-        });
-        if (!current || current.quantity < parsed.data.quantity) {
+        const result = await tx.$queryRaw<{ id: string }[]>`
+          UPDATE "Product"
+          SET quantity = quantity - ${parsed.data.quantity}
+          WHERE id = ${productId} AND quantity >= ${parsed.data.quantity}
+          RETURNING id
+        `;
+        if (result.length === 0) {
+          const current = await tx.product.findUnique({
+            where: { id: productId },
+            select: { quantity: true },
+          });
           throw new Error(`Insufficient stock. Available: ${current?.quantity ?? 0}`);
         }
+      } else {
+        await tx.product.update({
+          where: { id: productId },
+          data: { quantity: { increment: parsed.data.quantity } },
+        });
       }
 
       await tx.stockMovement.create({
@@ -64,15 +75,6 @@ export async function recordMovement(
           type: parsed.data.type,
           quantity: parsed.data.quantity,
           note: parsed.data.note || null,
-        },
-      });
-      await tx.product.update({
-        where: { id: productId },
-        data: {
-          quantity:
-            parsed.data.type === "IN"
-              ? { increment: parsed.data.quantity }
-              : { decrement: parsed.data.quantity },
         },
       });
     });

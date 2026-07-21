@@ -14,16 +14,4 @@ export const STOCK_TAKE_STATUS = {
 } as const;
 export type StockTakeStatus = (typeof STOCK_TAKE_STATUS)[keyof typeof STOCK_TAKE_STATUS];
 
-export const STORAGE_KEYS = {
-  THEME: "theme",
-  LOG_LEVEL: "logLevel",
-} as const;
-
-export const ROUTES = {
-  DASHBOARD: "/dashboard",
-  PRODUCTS: "/products",
-  SETTINGS: "/settings",
-  STOCK_TAKE: "/stock-take",
-  CREATE_SHOP: "/create-shop",
-  HOME: "/",
-} as const;
+export const THEME_KEY = "theme" as const;

@@ -38,9 +38,16 @@ export default async function ProductsPage({
       : {}),
   };
 
+  const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
+
   const [rawProducts, total] = await Promise.all([
     prisma.product.findMany({
       where,
+      select: {
+        id: true, name: true, sku: true, unitPrice: true, quantity: true,
+        unit: true, lowStockLimit: true,
+        ...(canViewCost ? { costPrice: true } : {}),
+      },
       orderBy: { createdAt: "desc" },
       skip: (currentPage - 1) * PER_PAGE,
       take: PER_PAGE,
@@ -48,12 +55,10 @@ export default async function ProductsPage({
     prisma.product.count({ where }),
   ]);
 
-  const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
-
   const products = rawProducts.map((p) => ({
     ...p,
     unitPrice: Number(p.unitPrice),
-    costPrice: Number(p.costPrice),
+    ...(canViewCost ? { costPrice: Number(p.costPrice) } : { costPrice: 0 }),
   }));
 
   const totalPages = Math.ceil(total / PER_PAGE);

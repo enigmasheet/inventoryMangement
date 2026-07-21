@@ -3,11 +3,7 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-type Props = {
-  error?: string;
-};
-
-export function StockTakeDetailError({ error }: Props) {
+export function UrlErrorToast({ error }: { error?: string }) {
   useEffect(() => {
     if (error) {
       toast.error(decodeURIComponent(error));

@@ -32,10 +32,11 @@ export default async function TenantLayout({
     redirect("/");
   }
 
-  const tenant = await prisma.tenant.findUnique({
-    where: { slug: tenantSlug },
+  const tenant = await prisma.tenant.findFirst({
+    where: { slug: tenantSlug, id: session.user.tenantId },
+    select: { id: true, slug: true, shopName: true, category: true },
   });
-  if (!tenant || tenant.id !== session.user.tenantId) {
+  if (!tenant) {
     log.warn("tenant layout redirect — tenant mismatch", { tenantSlug, sessionTenantId: session.user.tenantId });
     redirect("/");
   }

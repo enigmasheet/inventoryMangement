@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import { completeStockTakeAction, cancelStockTakeAction } from "@/app/actions/stock-take";
 import { StockTakeItemRow } from "@/components/stock-take-item-row";
-import { StockTakeDetailError } from "@/components/stock-take-detail-error";
+import { UrlErrorToast } from "@/components/url-error-toast";
 import { ClipboardList, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -48,7 +48,7 @@ export default async function StockTakeDetailPage({
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <StockTakeDetailError error={error} />
+      <UrlErrorToast error={error} />
 
       <div>
         <Link

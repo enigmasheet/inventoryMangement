@@ -2,7 +2,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { startStockTakeAction } from "@/app/actions/stock-take";
-import { StockTakeListError } from "@/components/stock-take-list-error";
+import { UrlErrorToast } from "@/components/url-error-toast";
 import { StockTakePagination } from "@/components/stock-take-pagination";
 import { ClipboardList, CheckCircle2, Clock, XCircle, Plus } from "lucide-react";
 import Link from "next/link";
@@ -46,7 +46,7 @@ export default async function StockTakeListPage({
 
   return (
     <div className="space-y-6">
-      <StockTakeListError error={error} />
+      <UrlErrorToast error={error} />
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">

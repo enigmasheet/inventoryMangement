@@ -154,7 +154,7 @@ export async function removeMember(
 
   const tenant = await prisma.tenant.findFirst({
     where: { id: session.user.tenantId },
-    select: { createdById: true },
+    select: { createdById: true, slug: true },
   });
   if (!tenant || tenant.createdById !== session.user.id) {
     log.warn("removeMember rejected — not the owner");
@@ -180,7 +180,7 @@ export async function removeMember(
   });
 
   log.info("member removed", { userId, tenantId: session.user.tenantId });
-  revalidatePath(`/[tenantSlug]/settings`);
+  revalidatePath(`/${tenant.slug}/settings`);
   return null;
 }
 

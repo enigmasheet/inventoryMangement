@@ -428,6 +428,7 @@ describe("recordMovement", () => {
     prisma.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === "function") {
         const tx = {
+          $queryRaw: vi.fn().mockResolvedValue([]),
           product: { findUnique: vi.fn().mockResolvedValue({ quantity: 2 }) },
           stockMovement: { create: vi.fn() },
         };
@@ -446,7 +447,8 @@ describe("recordMovement", () => {
     prisma.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === "function") {
         const tx = {
-          product: { findUnique: vi.fn().mockResolvedValue({ quantity: 10 }), update: vi.fn() },
+          $queryRaw: vi.fn(),
+          product: { update: vi.fn() },
           stockMovement: { create: vi.fn() },
         };
         await cb(tx);
@@ -463,7 +465,7 @@ describe("recordMovement", () => {
     prisma.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === "function") {
         const tx = {
-          product: { findUnique: vi.fn().mockResolvedValue({ quantity: 10 }), update: vi.fn() },
+          $queryRaw: vi.fn().mockResolvedValue([{ id: "p1" }]),
           stockMovement: { create: vi.fn() },
         };
         await cb(tx);

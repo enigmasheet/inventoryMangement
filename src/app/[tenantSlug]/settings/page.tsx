@@ -7,7 +7,7 @@ import { deleteAttributeAction } from "@/app/actions/attributes";
 import { InviteCodeSection } from "@/components/invite-code-section";
 import { MemberListSection } from "@/components/member-list-section";
 import { ToggleFinancials } from "@/components/toggle-financials";
-import { SettingsError } from "@/components/settings-error";
+import { UrlErrorToast } from "@/components/url-error-toast";
 import { Button } from "@/components/ui/button";
 import { Sliders, Trash2 } from "lucide-react";
 
@@ -51,7 +51,7 @@ export default async function SettingsPage({
 
   return (
     <div className="space-y-8 max-w-2xl">
-      <SettingsError error={error} />
+      <UrlErrorToast error={error} />
       <h1 className="font-heading font-bold text-lg tracking-wider uppercase">Settings</h1>
 
       {isOwner && (
