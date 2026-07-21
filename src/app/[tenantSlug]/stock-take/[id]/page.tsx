@@ -123,7 +123,7 @@ export default async function StockTakeDetailPage({
           <thead>
             <tr className="border-b">
               <th className="font-heading font-bold text-[10px] uppercase tracking-wider text-left px-4 py-2">Product</th>
-              <th className="font-heading font-bold text-[10px] uppercase tracking-wider text-left px-4 py-2">SKU</th>
+              <th className="hidden sm:table-cell font-heading font-bold text-[10px] uppercase tracking-wider text-left px-4 py-2">SKU</th>
               <th className="font-heading font-bold text-[10px] uppercase tracking-wider text-right px-4 py-2">Expected</th>
               <th className="font-heading font-bold text-[10px] uppercase tracking-wider text-right px-4 py-2">Counted</th>
               <th className="font-heading font-bold text-[10px] uppercase tracking-wider text-right px-4 py-2">Diff</th>

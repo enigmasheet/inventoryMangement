@@ -7,6 +7,7 @@ import { createShop } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const categories = [
   { value: "general", label: "General" },
@@ -60,27 +61,29 @@ export function CreateShopForm() {
             id="shopName"
             name="shopName"
             placeholder="e.g. The Corner Store"
+            aria-invalid={!!fieldErrors.shopName}
+            aria-describedby={fieldErrors.shopName ? "shopName-error" : undefined}
           />
           {fieldErrors.shopName && (
-            <p className="text-xs text-destructive">{fieldErrors.shopName}</p>
+            <p id="shopName-error" className="text-xs text-destructive">{fieldErrors.shopName}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="category" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
             Category <span className="text-destructive ml-0.5">*</span>
           </Label>
-          <select
-            id="category"
-            name="category"
-            className="flex h-9 w-full bg-background border px-2.5 py-1.5 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="">Select a category</option>
-            {categories.map((cat) => (
-              <option key={cat.value} value={cat.value}>{cat.label}</option>
-            ))}
-          </select>
+          <Select name="category">
+            <SelectTrigger id="category" className="w-full" aria-invalid={!!fieldErrors.category} aria-describedby={fieldErrors.category ? "category-error" : undefined}>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {fieldErrors.category && (
-            <p className="text-xs text-destructive">{fieldErrors.category}</p>
+            <p id="category-error" className="text-xs text-destructive">{fieldErrors.category}</p>
           )}
         </div>
         <Button type="submit" disabled={pending} className="w-full gap-1.5 bg-accent text-accent-foreground hover:brightness-110 font-heading font-bold text-xs uppercase tracking-wider px-3 py-1.5">

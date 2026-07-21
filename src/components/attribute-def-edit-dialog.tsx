@@ -9,14 +9,14 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ATTRIBUTE_TYPES } from "@/lib/constants";
 import { Pencil } from "lucide-react";
-
-const types = ATTRIBUTE_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }));
 
 type Props = {
   tenantSlug: string;
@@ -76,42 +76,43 @@ export function AttributeDefEditDialog({ tenantSlug, def }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-heading font-bold text-sm uppercase tracking-wider">Edit Field</DialogTitle>
+          <DialogDescription className="sr-only">Edit custom attribute field details</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="key" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
               Key <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="key" name="key" defaultValue={def.key} />
+            <Input id="key" name="key" defaultValue={def.key} aria-invalid={!!fieldErrors.key} aria-describedby={fieldErrors.key ? "edit-key-error" : undefined} />
             {fieldErrors.key && (
-              <p className="text-xs text-destructive">{fieldErrors.key}</p>
+              <p id="edit-key-error" className="text-xs text-destructive">{fieldErrors.key}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="label" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
               Label <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="label" name="label" defaultValue={def.label} />
+            <Input id="label" name="label" defaultValue={def.label} aria-invalid={!!fieldErrors.label} aria-describedby={fieldErrors.label ? "edit-label-error" : undefined} />
             {fieldErrors.label && (
-              <p className="text-xs text-destructive">{fieldErrors.label}</p>
+              <p id="edit-label-error" className="text-xs text-destructive">{fieldErrors.label}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="type" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
               Type <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <select
-              id="type"
-              name="type"
-              defaultValue={def.type}
-              className="flex h-9 w-full bg-background border px-2.5 py-1.5 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {types.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+            <Select name="type" defaultValue={def.type}>
+              <SelectTrigger id="type" className="w-full" aria-invalid={!!fieldErrors.type} aria-describedby={fieldErrors.type ? "edit-type-error" : undefined}>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                {ATTRIBUTE_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {fieldErrors.type && (
-              <p className="text-xs text-destructive">{fieldErrors.type}</p>
+              <p id="edit-type-error" className="text-xs text-destructive">{fieldErrors.type}</p>
             )}
           </div>
           {state?.error && (

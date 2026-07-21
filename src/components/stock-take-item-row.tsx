@@ -61,7 +61,7 @@ export function StockTakeItemRow({ tenantSlug, item, isActive }: Props) {
   return (
     <tr className={diff !== null && diff !== 0 && !isActive ? "bg-warning/5" : ""}>
       <td className="px-4 py-3 font-sans text-sm">{item.product.name}</td>
-      <td className="px-4 py-3">
+      <td className="hidden sm:table-cell px-4 py-3">
         <code className="font-mono text-xs bg-muted px-1.5 py-0.5" data-number>{item.product.sku}</code>
       </td>
       <td className="px-4 py-3 font-mono text-sm text-right" data-number>
@@ -81,6 +81,8 @@ export function StockTakeItemRow({ tenantSlug, item, isActive }: Props) {
                 className="w-20 h-8 bg-background border px-2 py-1 text-sm font-mono text-right focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder="—"
                 data-number
+                aria-invalid={!!fieldError}
+                aria-describedby={fieldError ? `count-error-${item.id}` : undefined}
               />
               <button
                 type="submit"
@@ -91,7 +93,7 @@ export function StockTakeItemRow({ tenantSlug, item, isActive }: Props) {
               </button>
             </form>
             {fieldError && (
-              <p className="text-xs text-destructive whitespace-nowrap">{fieldError}</p>
+              <p id={`count-error-${item.id}`} className="text-xs text-destructive whitespace-nowrap">{fieldError}</p>
             )}
           </div>
         ) : (

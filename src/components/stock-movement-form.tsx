@@ -7,6 +7,7 @@ import { recordMovement } from "@/app/actions/stock";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Props = {
   tenantSlug: string;
@@ -63,26 +64,26 @@ export function StockMovementForm({ tenantSlug, productId }: Props) {
           <Label htmlFor="type" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
             Type <span className="text-destructive ml-0.5">*</span>
           </Label>
-          <select
-            id="type"
-            name="type"
-            className="flex h-9 w-full bg-background border px-2.5 py-1.5 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="">Select type</option>
-            <option value="IN">Stock In</option>
-            <option value="OUT">Stock Out</option>
-          </select>
+          <Select name="type">
+            <SelectTrigger id="type" className="w-full" aria-invalid={!!fieldErrors.type} aria-describedby={fieldErrors.type ? "type-error" : undefined}>
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="IN">Stock In</SelectItem>
+              <SelectItem value="OUT">Stock Out</SelectItem>
+            </SelectContent>
+          </Select>
           {fieldErrors.type && (
-            <p className="text-xs text-destructive">{fieldErrors.type}</p>
+            <p id="type-error" className="text-xs text-destructive">{fieldErrors.type}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="quantity" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
             Quantity <span className="text-destructive ml-0.5">*</span>
           </Label>
-          <Input id="quantity" name="quantity" type="number" min="1" />
+          <Input id="quantity" name="quantity" type="number" min="1" aria-invalid={!!fieldErrors.quantity} aria-describedby={fieldErrors.quantity ? "quantity-error" : undefined} />
           {fieldErrors.quantity && (
-            <p className="text-xs text-destructive">{fieldErrors.quantity}</p>
+            <p id="quantity-error" className="text-xs text-destructive">{fieldErrors.quantity}</p>
           )}
         </div>
         <div className="space-y-2">

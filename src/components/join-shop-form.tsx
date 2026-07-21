@@ -51,9 +51,11 @@ export function JoinShopForm() {
             placeholder="e.g. A7K2X9M4PQ"
             maxLength={10}
             className="font-mono uppercase tracking-widest"
+            aria-invalid={!!fieldErrors.code}
+            aria-describedby={fieldErrors.code ? "code-error" : undefined}
           />
           {fieldErrors.code && (
-            <p className="text-xs text-destructive">{fieldErrors.code}</p>
+            <p id="code-error" className="text-xs text-destructive">{fieldErrors.code}</p>
           )}
         </div>
         <Button

@@ -8,6 +8,7 @@ import type { AttributeDefinition, Product, ProductAttributeValue } from "@/gene
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PRODUCT_UNITS } from "@/lib/constants";
 
 type SerializedProduct = Omit<Product, "unitPrice" | "costPrice"> & {
@@ -83,18 +84,18 @@ export function ProductForm({ tenantSlug, currency, attributeDefs, product, acti
             <Label htmlFor="name" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
               Product Name <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="name" name="name" defaultValue={product?.name} />
+            <Input id="name" name="name" defaultValue={product?.name} aria-invalid={!!fieldErrors.name} aria-describedby={fieldErrors.name ? "name-error" : undefined} />
             {fieldErrors.name && (
-              <p className="text-xs text-destructive">{fieldErrors.name}</p>
+              <p id="name-error" className="text-xs text-destructive">{fieldErrors.name}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="sku" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
               SKU <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="sku" name="sku" defaultValue={product?.sku} />
+            <Input id="sku" name="sku" defaultValue={product?.sku} aria-invalid={!!fieldErrors.sku} aria-describedby={fieldErrors.sku ? "sku-error" : undefined} />
             {fieldErrors.sku && (
-              <p className="text-xs text-destructive">{fieldErrors.sku}</p>
+              <p id="sku-error" className="text-xs text-destructive">{fieldErrors.sku}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -108,9 +109,11 @@ export function ProductForm({ tenantSlug, currency, attributeDefs, product, acti
               step="0.01"
               min="0"
               defaultValue={product?.unitPrice.toString() ?? "0"}
+              aria-invalid={!!fieldErrors.unitPrice}
+              aria-describedby={fieldErrors.unitPrice ? "unitPrice-error" : undefined}
             />
             {fieldErrors.unitPrice && (
-              <p className="text-xs text-destructive">{fieldErrors.unitPrice}</p>
+              <p id="unitPrice-error" className="text-xs text-destructive">{fieldErrors.unitPrice}</p>
             )}
           </div>
           {canViewCost && (
@@ -134,7 +137,12 @@ export function ProductForm({ tenantSlug, currency, attributeDefs, product, acti
               type="number"
               min="0"
               defaultValue={product?.quantity.toString() ?? "0"}
+              aria-invalid={!!fieldErrors.quantity}
+              aria-describedby={fieldErrors.quantity ? "quantity-error" : undefined}
             />
+            {fieldErrors.quantity && (
+              <p id="quantity-error" className="text-xs text-destructive">{fieldErrors.quantity}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="lowStockLimit" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Low Stock Limit</Label>
@@ -148,16 +156,16 @@ export function ProductForm({ tenantSlug, currency, attributeDefs, product, acti
           </div>
           <div className="space-y-2">
             <Label htmlFor="unit" className="font-heading font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Unit</Label>
-            <select
-              id="unit"
-              name="unit"
-              defaultValue={product?.unit ?? "pcs"}
-              className="flex h-9 w-full bg-background border px-2.5 py-1.5 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {PRODUCT_UNITS.map((u) => (
-                <option key={u} value={u}>{u}</option>
-              ))}
-            </select>
+            <Select name="unit" defaultValue={product?.unit ?? "pcs"}>
+              <SelectTrigger id="unit" className="w-full">
+                <SelectValue placeholder="Select unit" />
+              </SelectTrigger>
+              <SelectContent>
+                {PRODUCT_UNITS.map((u) => (
+                  <SelectItem key={u} value={u}>{u}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

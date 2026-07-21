@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Barlow_Condensed, Work_Sans, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const barlow = Barlow_Condensed({
@@ -30,9 +31,6 @@ export const metadata: Metadata = {
     shortcut: "/web/icons8-inventory-arcade-16.png",
     apple: "/web/icons8-inventory-arcade-96.png",
   },
-  other: {
-    "theme-color": "#0a0a0a",
-  },
 };
 
 export default function RootLayout({
@@ -47,16 +45,27 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <meta name="theme-color" content="#0a0a0a" />
         <Script id="theme-init" strategy="beforeInteractive">
           {`(function() {
             var t = localStorage.getItem("theme");
-            if (t !== "light") document.documentElement.classList.add("dark");
+            if (t === "light") {
+              document.documentElement.classList.remove("dark");
+              document.querySelector("meta[name='theme-color']")?.setAttribute("content", "#fafafa");
+            } else if (t === "dark") {
+              document.documentElement.classList.add("dark");
+            } else {
+              if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+                document.documentElement.classList.remove("dark");
+                document.querySelector("meta[name='theme-color']")?.setAttribute("content", "#fafafa");
+              } else {
+                document.documentElement.classList.add("dark");
+              }
+            }
           })();`}
         </Script>
       </head>
       <body className="min-h-full flex flex-col">
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
         <Toaster
           position="top-right"
           richColors

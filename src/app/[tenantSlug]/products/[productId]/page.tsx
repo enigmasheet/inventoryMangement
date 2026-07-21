@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Package, ArrowLeft, Edit3, Hash, Tag, DollarSign, Layers, Archive, TrendingUp, TrendingDown, CalendarClock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { StockMovementForm } from "@/components/stock-movement-form";
 import { StockMovementList } from "@/components/stock-movement-list";
 
@@ -95,10 +96,10 @@ export default async function ProductDetailPage({
             </div>
             <div>
               <h1 className="font-heading font-bold text-xl tracking-wider uppercase">{product.name}</h1>
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-heading font-bold uppercase tracking-wider ${statusClasses}`}>
+              <Badge className={`gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-heading font-bold uppercase tracking-wider ${statusClasses}`}>
                 <span className={`size-2 rounded-full ${isOut ? "bg-destructive" : isLow ? "bg-warning" : "bg-success"}`} />
                 {statusLabel}
-              </span>
+              </Badge>
             </div>
           </div>
           <Link

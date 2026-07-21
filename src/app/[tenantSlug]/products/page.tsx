@@ -79,6 +79,7 @@ export default async function ProductsPage({
             download
             href={`/api/export/products/${tenantSlug}`}
             className="inline-flex items-center gap-1.5 border bg-card px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            aria-label="Download products CSV"
           >
             <Download className="size-3.5" />
             <span className="hidden sm:inline">CSV</span>

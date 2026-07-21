@@ -6,6 +6,17 @@ import { Users, X, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { removeMember } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Member = {
   id: string;
@@ -22,8 +33,7 @@ type Props = {
 export function MemberListSection({ members, ownerId }: Props) {
   const [removingId, setRemovingId] = useState<string | null>(null);
 
-  const handleRemove = useCallback(async (memberId: string, memberName: string) => {
-    if (!window.confirm(`Remove ${memberName} from this shop?`)) return;
+  const doRemove = useCallback(async (memberId: string) => {
     setRemovingId(memberId);
     const result = await removeMember(memberId);
     setRemovingId(null);
@@ -71,16 +81,21 @@ export function MemberListSection({ members, ownerId }: Props) {
                 <p className="font-sans text-xs text-muted-foreground truncate">{member.email}</p>
               </div>
               {!isOwner && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={removingId === member.id}
-                  onClick={() => handleRemove(member.id, member.name)}
-                  className="shrink-0 text-muted-foreground hover:text-destructive"
-                  title="Remove from shop"
-                >
-                  <X className="size-3.5" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger render={<Button variant="ghost" size="sm" disabled={removingId === member.id} className="shrink-0 text-muted-foreground hover:text-destructive" />}>
+                    <X className="size-3.5" />
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove Member</AlertDialogTitle>
+                      <AlertDialogDescription>Are you sure you want to remove {member.name} from this shop?</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => doRemove(member.id)}>Remove</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           );

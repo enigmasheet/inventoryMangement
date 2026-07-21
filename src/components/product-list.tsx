@@ -13,6 +13,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2 } from "lucide-react";
 
 type ProductRow = {
@@ -44,8 +56,8 @@ export function ProductList({ tenantSlug, currency, products, canViewCost = true
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Name</TableHead>
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">SKU</TableHead>
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Sell</TableHead>
-            {canViewCost && <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Cost</TableHead>}
-            {canViewCost && <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Margin</TableHead>}
+            {canViewCost && <TableHead className="hidden sm:table-cell font-heading font-bold text-[10px] uppercase tracking-wider">Cost</TableHead>}
+            {canViewCost && <TableHead className="hidden sm:table-cell font-heading font-bold text-[10px] uppercase tracking-wider">Margin</TableHead>}
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Qty</TableHead>
             <TableHead className="font-heading font-bold text-[10px] uppercase tracking-wider">Status</TableHead>
             <TableHead className="text-right font-heading font-bold text-[10px] uppercase tracking-wider"></TableHead>
@@ -95,9 +107,9 @@ export function ProductList({ tenantSlug, currency, products, canViewCost = true
                   <code className="font-mono text-xs bg-muted px-1.5 py-0.5" data-number>{p.sku}</code>
                 </TableCell>
                 <TableCell className="font-mono text-sm" data-number>{currency}{price.toFixed(2)}</TableCell>
-                {canViewCost && <TableCell className="font-mono text-sm text-muted-foreground" data-number>{currency}{cost.toFixed(2)}</TableCell>}
+                {canViewCost && <TableCell className="hidden sm:table-cell font-mono text-sm text-muted-foreground" data-number>{currency}{cost.toFixed(2)}</TableCell>}
                 {canViewCost && (
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <span className={`font-mono text-xs ${profit >= 0 ? "text-success" : "text-destructive"}`} data-number>
                       {profitMargin.toFixed(0)}%
                     </span>
@@ -108,10 +120,10 @@ export function ProductList({ tenantSlug, currency, products, canViewCost = true
                   <span className="font-sans text-[10px] text-muted-foreground ml-0.5">{p.unit}</span>
                 </TableCell>
                 <TableCell>
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-heading font-bold uppercase tracking-wider ${statusClasses}`}>
+                  <Badge className={`gap-1 rounded-full px-2 py-0.5 text-[11px] font-heading font-bold uppercase tracking-wider ${statusClasses}`}>
                     <span className={`size-1.5 rounded-full ${isOut ? "bg-destructive" : isLow ? "bg-warning" : "bg-success"}`} />
                     {statusLabel}
-                  </span>
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -120,27 +132,33 @@ export function ProductList({ tenantSlug, currency, products, canViewCost = true
                       size="sm"
                       onClick={() => router.push(`/${tenantSlug}/products/${p.id}/edit`)}
                       className="text-muted-foreground hover:text-foreground"
+                      aria-label={`Edit ${p.name}`}
                     >
                       <Pencil className="size-3.5" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={async () => {
-                        if (confirm("Delete this product?")) {
-                          const result = await deleteProduct(p.id, tenantSlug);
-                          if (result?.error) {
-                            toast.error(result.error);
-                          } else {
-                            toast.success("Product deleted");
-                          }
-                          router.refresh();
-                        }
-                      }}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger render={<Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" />}>
+                        <Trash2 className="size-3.5" />
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Product</AlertDialogTitle>
+                          <AlertDialogDescription>Are you sure you want to delete {p.name}? This cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={async () => {
+                            const result = await deleteProduct(p.id, tenantSlug);
+                            if (result?.error) {
+                              toast.error(result.error);
+                            } else {
+                              toast.success("Product deleted");
+                            }
+                            router.refresh();
+                          }}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </TableCell>
               </TableRow>
