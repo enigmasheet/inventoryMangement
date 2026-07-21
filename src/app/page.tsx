@@ -1,5 +1,7 @@
 import { getSession } from "@/lib/session";
+import { prisma } from "@/lib/db";
 import Link from "next/link";
+import Image from "next/image";
 import { SignInButton } from "@/components/sign-in-button";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Package, TrendingUp, Bell, Settings, Store, ArrowRight, LayoutDashboard, BarChart3, Shield, Zap, Users } from "lucide-react";
@@ -32,12 +34,15 @@ export default async function HomePage() {
 
   let tenantSlug: string | null = null;
   if (session?.user.tenantId) {
-    const { prisma } = await import("@/lib/db");
-    const tenant = await prisma.tenant.findUnique({
-      where: { id: session.user.tenantId },
-      select: { slug: true },
-    });
-    if (tenant) tenantSlug = tenant.slug;
+    try {
+      const tenant = await prisma.tenant.findUnique({
+        where: { id: session.user.tenantId },
+        select: { slug: true },
+      });
+      if (tenant) tenantSlug = tenant.slug;
+    } catch {
+      // Tenant lookup failed — show unauthenticated view
+    }
   }
 
   return (
@@ -45,7 +50,7 @@ export default async function HomePage() {
       <header className="border-b bg-card">
         <div className="flex h-12 items-center px-4 sm:px-6 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-2">
-            <img src="/web/icons8-inventory-arcade-32.png" alt="" width={32} height={32} className="size-7" />
+            <Image src="/web/icons8-inventory-arcade-32.png" alt="" width={32} height={32} className="size-7" />
             <span className="font-heading font-bold text-sm tracking-widest uppercase">Sajilo Inventory</span>
           </div>
           <div className="ml-auto">

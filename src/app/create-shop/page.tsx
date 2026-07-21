@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/session";
+import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CreateShopForm } from "@/components/create-shop-form";
@@ -12,13 +13,16 @@ export default async function CreateShopPage() {
   }
 
   if (session.user.tenantId) {
-    const { prisma } = await import("@/lib/db");
-    const tenant = await prisma.tenant.findUnique({
-      where: { id: session.user.tenantId },
-      select: { slug: true },
-    });
-    if (tenant) {
-      redirect(`/${tenant.slug}/dashboard`);
+    try {
+      const tenant = await prisma.tenant.findUnique({
+        where: { id: session.user.tenantId },
+        select: { slug: true },
+      });
+      if (tenant) {
+        redirect(`/${tenant.slug}/dashboard`);
+      }
+    } catch {
+      // Tenant lookup failed — show create-shop form
     }
   }
 
