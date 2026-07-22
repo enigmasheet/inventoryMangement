@@ -3,7 +3,6 @@
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
 import { ATTRIBUTE_TYPES } from "@/lib/constants";
@@ -129,8 +128,9 @@ async function _deleteAttribute(tenantSlug: string, attributeId: string): Promis
   return null;
 }
 
-export async function deleteAttributeAction(tenantSlug: string, attributeId: string): Promise<void> {
-  const result = await _deleteAttribute(tenantSlug, attributeId);
-  if (!result?.error) return;
-  redirect(`/${tenantSlug}/settings?error=${encodeURIComponent(result.error)}`);
+export async function deleteAttributeAction(
+  tenantSlug: string,
+  attributeId: string
+): Promise<{ error?: string } | null> {
+  return _deleteAttribute(tenantSlug, attributeId);
 }

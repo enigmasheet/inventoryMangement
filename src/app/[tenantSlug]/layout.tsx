@@ -32,7 +32,13 @@ export default async function TenantLayout({
   children: React.ReactNode;
   params: Promise<{ tenantSlug: string }>;
 }) {
-  const { tenantSlug } = await params;
+  const resolvedParams = await params;
+  const tenantSlug = resolvedParams?.tenantSlug;
+  if (!tenantSlug) {
+    log.warn("tenant layout redirect — no tenantSlug in params");
+    redirect("/");
+  }
+
   const session = await getSession();
 
   if (!session?.user.tenantId) {

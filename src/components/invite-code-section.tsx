@@ -5,6 +5,17 @@ import { Copy, Check, RefreshCw, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { regenerateInviteCode } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Props = {
   initialCode: string | null;
@@ -70,29 +81,61 @@ export function InviteCodeSection({ initialCode }: Props) {
           >
             {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRegenerate}
-            disabled={loading}
-            className="shrink-0"
-            title="Generate new code"
-          >
-            {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger render={
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading}
+                className="shrink-0"
+                title="Generate new code"
+              >
+                {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+              </Button>
+            }>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Regenerate invite code?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will invalidate the current code. Anyone with the old code will no longer be able to join.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRegenerate}>Regenerate</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       ) : (
         <div className="flex items-center justify-between">
           <p className="text-sm font-sans text-muted-foreground italic">No invite code set</p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRegenerate}
-            disabled={loading}
-          >
-            {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
-            {loading ? "Generating..." : "Generate Code"}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger render={
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+                {loading ? "Generating..." : "Generate Code"}
+              </Button>
+            }>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Generate invite code?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will create a new invite code for your shop. You can share it with others to let them join.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRegenerate}>Generate</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </div>

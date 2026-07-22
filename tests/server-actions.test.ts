@@ -327,7 +327,7 @@ describe("deleteAttributeAction", () => {
     prisma.attributeDefinition.findFirst.mockResolvedValue({ id: "a1", tenantId: "t1", key: "x" });
     prisma.$transaction.mockResolvedValue([]);
 
-    await expect(deleteAttributeAction("my-shop", "a1")).resolves.toBeUndefined();
+    await expect(deleteAttributeAction("my-shop", "a1")).resolves.toBeNull();
   });
 });
 

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { FileQuestion } from "lucide-react";
 
 export default async function TenantNotFound({ params }: { params: Promise<{ tenantSlug: string }> }) {
-  const { tenantSlug } = await params;
+  const resolvedParams = await params;
+  const tenantSlug = resolvedParams?.tenantSlug;
 
   return (
     <div className="flex flex-col items-center justify-center gap-5 py-24">
@@ -15,12 +16,14 @@ export default async function TenantNotFound({ params }: { params: Promise<{ ten
           This page doesn&apos;t exist in your shop.
         </p>
       </div>
-      <Link
-        href={`/${tenantSlug}/dashboard`}
-        className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
-      >
-        Back to Dashboard
-      </Link>
+      {tenantSlug && (
+        <Link
+          href={`/${tenantSlug}/dashboard`}
+          className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-3 py-1.5 text-xs font-heading font-bold uppercase tracking-wider hover:brightness-110 transition-all"
+        >
+          Back to Dashboard
+        </Link>
+      )}
     </div>
   );
 }

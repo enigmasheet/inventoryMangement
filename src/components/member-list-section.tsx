@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useOptimistic, startTransition, useCallback } from "react";
 import Image from "next/image";
 import { Users, X, Shield } from "lucide-react";
 import { toast } from "sonner";
@@ -32,28 +32,30 @@ type Props = {
 };
 
 export function MemberListSection({ members, ownerId }: Props) {
-  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [optimisticMembers, setOptimisticMembers] = useOptimistic(members);
 
   const doRemove = useCallback(async (memberId: string) => {
-    setRemovingId(memberId);
-    const result = await removeMember(memberId);
-    setRemovingId(null);
-    if (result?.error) {
-      toast.error(result.error);
-    } else {
-      toast.success("Member removed");
-    }
-  }, []);
+    const member = optimisticMembers.find((m) => m.id === memberId);
+    startTransition(async () => {
+      setOptimisticMembers((prev) => prev.filter((m) => m.id !== memberId));
+      const result = await removeMember(memberId);
+      if (result?.error) {
+        toast.error(result.error);
+      } else {
+        toast.success(`${member?.name ?? "Member"} removed`);
+      }
+    });
+  }, [optimisticMembers, setOptimisticMembers]);
 
   return (
     <div className="border bg-card p-4 space-y-4">
       <div className="flex items-center gap-2">
         <Users className="size-4 text-primary" />
         <h3 className="font-heading font-bold text-xs uppercase tracking-wider">Members</h3>
-        <span className="font-mono text-[10px] text-muted-foreground ml-auto" data-number>{members.length}</span>
+        <span className="font-mono text-[10px] text-muted-foreground ml-auto" data-number>{optimisticMembers.length}</span>
       </div>
       <div className="space-y-1">
-        {members.map((member) => {
+        {optimisticMembers.map((member) => {
           const isOwner = member.id === ownerId;
           return (
             <div
@@ -85,7 +87,7 @@ export function MemberListSection({ members, ownerId }: Props) {
                 <AlertDialog>
                   <AlertDialogTrigger render={
                     <Tooltip>
-                      <TooltipTrigger render={<Button variant="ghost" size="sm" disabled={removingId === member.id} className="shrink-0 text-muted-foreground hover:text-destructive" />}>
+                      <TooltipTrigger render={<Button variant="ghost" size="sm" className="shrink-0 text-muted-foreground hover:text-destructive" />}>
                         <X className="size-3.5" />
                       </TooltipTrigger>
                       <TooltipContent>Remove {member.name}</TooltipContent>

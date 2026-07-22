@@ -1,28 +1,33 @@
 "use client";
 
-import { useActionState } from "react";
+import { useOptimistic, startTransition } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { toggleFinancials } from "@/app/actions";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 type Props = { initialValue: boolean };
 
 export function ToggleFinancials({ initialValue }: Props) {
-  const [state, formAction, pending] = useActionState(
-    async (_prev: unknown, formData: FormData) => {
-      const val = formData.get("showFinancials") === "on";
-      const result = await toggleFinancials(val);
-      if (result?.error) toast.error(result.error);
-      return result;
-    },
-    null
-  );
+  const [optimisticValue, setOptimisticValue] = useOptimistic(initialValue);
 
-  const checked = state?.showFinancials ?? initialValue;
+  const checked = optimisticValue;
+
+  const handleToggle = async () => {
+    const next = !checked;
+    startTransition(async () => {
+      setOptimisticValue(next);
+      const result = await toggleFinancials(next);
+      if (result?.error) {
+        toast.error(result.error);
+      }
+    });
+  };
 
   return (
-    <form action={formAction} className="border bg-card p-4 space-y-3">
-      <label className="flex items-center justify-between cursor-pointer">
+    <div className="border bg-card p-4 space-y-3">
+      <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             {checked ? <Eye className="size-4 text-primary" /> : <EyeOff className="size-4 text-muted-foreground" />}
@@ -34,18 +39,11 @@ export function ToggleFinancials({ initialValue }: Props) {
               : "Only the owner can see cost price and margin"}
           </p>
         </div>
-        <button
-          type="submit"
-          name="showFinancials"
-          value={checked ? "off" : "on"}
-          disabled={pending}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? "bg-accent" : "bg-muted"}`}
-        >
-          <span
-            className={`inline-block size-5 rounded-full bg-background shadow-sm border transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`}
-          />
-        </button>
-      </label>
-    </form>
+        <Label>
+          <span className="sr-only">Toggle financial fields visibility</span>
+          <Switch checked={checked} onCheckedChange={handleToggle} />
+        </Label>
+      </div>
+    </div>
   );
 }
