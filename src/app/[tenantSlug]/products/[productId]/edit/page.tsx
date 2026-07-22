@@ -19,14 +19,20 @@ export default async function EditProductPage({
   });
   if (!tenant) redirect("/");
 
-  const rawProduct = await prisma.product.findFirst({
-    where: { id: productId, tenantId: tenant.id },
-    include: {
-      attributes: {
-        include: { attributeDef: { select: { id: true } } },
+  const [rawProduct, attrDefs] = await Promise.all([
+    prisma.product.findFirst({
+      where: { id: productId, tenantId: tenant.id },
+      include: {
+        attributes: {
+          include: { attributeDef: { select: { id: true } } },
+        },
       },
-    },
-  });
+    }),
+    prisma.attributeDefinition.findMany({
+      where: { tenantId: tenant.id },
+      select: { id: true, key: true, label: true, type: true },
+    }),
+  ]);
   if (!rawProduct) notFound();
 
   const canViewCost = tenant.showFinancials || session.user.id === tenant.createdById;
@@ -36,11 +42,6 @@ export default async function EditProductPage({
     unitPrice: Number(rawProduct.unitPrice),
     costPrice: Number(rawProduct.costPrice),
   };
-
-  const attrDefs = await prisma.attributeDefinition.findMany({
-    where: { tenantId: tenant.id },
-    select: { id: true, key: true, label: true, type: true },
-  });
 
   const updateWithSlug = updateProduct.bind(null, tenantSlug, productId);
 

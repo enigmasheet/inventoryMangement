@@ -2,7 +2,7 @@
 
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createLogger } from "@/lib/logger";
 import { STOCK_TAKE_STATUS } from "@/lib/constants";
@@ -66,6 +66,7 @@ export async function _startStockTake(
 
   log.info("stock take started", { stockTakeId: stockTake.id });
   revalidatePath(`/${tenantSlug}/dashboard`);
+  updateTag("dashboard-active-stock-take");
   redirect(`/${tenantSlug}/stock-take/${stockTake.id}`);
 }
 
@@ -142,6 +143,10 @@ export async function completeStockTake(
   revalidatePath(`/${slug}/dashboard`);
   revalidatePath(`/${slug}/stock-take`);
   revalidatePath(`/${slug}/stock-take/${stockTakeId}`);
+  updateTag("dashboard-metrics");
+  updateTag("dashboard-low-stock");
+  updateTag("dashboard-active-stock-take");
+  updateTag("dashboard-expiring");
   return { tenantSlug: slug };
 }
 
@@ -172,5 +177,6 @@ export async function _cancelStockTake(stockTakeId: string): Promise<{ error?: s
   revalidatePath(`/${slug}/dashboard`);
   revalidatePath(`/${slug}/stock-take`);
   revalidatePath(`/${slug}/stock-take/${stockTakeId}`);
+  updateTag("dashboard-active-stock-take");
   return null;
 }

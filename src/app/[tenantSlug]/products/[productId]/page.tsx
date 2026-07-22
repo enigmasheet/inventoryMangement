@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
@@ -7,6 +8,25 @@ import { Package, ArrowLeft, Edit3, Hash, Tag, DollarSign, Layers, Archive, Tren
 import { Badge } from "@/components/ui/badge";
 import { StockMovementForm } from "@/components/stock-movement-form";
 import { StockMovementList } from "@/components/stock-movement-list";
+
+async function MovementSection({ tenantId, productId }: { tenantId: string; productId: string }) {
+  const movements = await prisma.stockMovement.findMany({
+    where: { tenantId, productId },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+  return <StockMovementList movements={movements} />;
+}
+
+function MovementSkeleton() {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="h-10 bg-muted rounded animate-pulse" />
+      ))}
+    </div>
+  );
+}
 
 export default async function ProductDetailPage({
   params,
@@ -28,7 +48,6 @@ export default async function ProductDetailPage({
       attributes: {
         include: { attributeDef: { select: { label: true, type: true } } },
       },
-      movements: { orderBy: { createdAt: "desc" }, take: 50 },
     },
   });
   if (!product) notFound();
@@ -159,7 +178,9 @@ export default async function ProductDetailPage({
 
       <div className="space-y-4">
         <h2 className="font-heading font-bold text-xs uppercase tracking-wider text-muted-foreground">Movement History</h2>
-        <StockMovementList movements={product.movements} />
+        <Suspense fallback={<MovementSkeleton />}>
+          <MovementSection tenantId={tenant.id} productId={productId} />
+        </Suspense>
       </div>
     </div>
   );

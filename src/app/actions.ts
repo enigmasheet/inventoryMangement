@@ -4,7 +4,7 @@ import { randomBytes } from "crypto";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import slugify from "slugify";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
@@ -211,6 +211,7 @@ export async function toggleFinancials(
   revalidatePath(`/${tenant.slug}/settings`);
   revalidatePath(`/${tenant.slug}/products`);
   revalidatePath(`/${tenant.slug}/dashboard`);
+  updateTag("dashboard-metrics");
   return { showFinancials };
 }
 

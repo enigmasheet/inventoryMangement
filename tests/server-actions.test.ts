@@ -27,7 +27,7 @@ vi.mock("@/lib/db", () => {
 class RedirectError extends Error { digest = "NEXT_REDIRECT"; }
 const redirectMock = vi.fn(() => { throw new RedirectError(); });
 vi.mock("next/navigation", () => ({ redirect: (...a: unknown[]) => redirectMock(...a) }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), updateTag: vi.fn() }));
 vi.mock("next/headers", () => ({ headers: vi.fn(() => new Headers()) }));
 
 import { auth } from "@/lib/auth";

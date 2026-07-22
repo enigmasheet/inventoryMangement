@@ -3,7 +3,7 @@
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
 import { PRODUCT_UNITS } from "@/lib/constants";
@@ -184,5 +184,7 @@ export async function deleteProduct(productId: string, tenantSlug: string): Prom
   log.info("product deleted", { productId, name: product.name });
   revalidatePath(`/${tenantSlug}/products`);
   revalidatePath(`/${tenantSlug}/dashboard`);
+  updateTag("dashboard-metrics");
+  updateTag("dashboard-low-stock");
   return null;
 }

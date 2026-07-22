@@ -2,7 +2,7 @@
 
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
 import { MOVEMENT_TYPES } from "@/lib/constants";
@@ -86,5 +86,7 @@ export async function recordMovement(
   log.info("movement recorded", { productId, type: parsed.data.type, quantity: parsed.data.quantity });
   revalidatePath(`/${tenantSlug}/products/${productId}`);
   revalidatePath(`/${tenantSlug}/dashboard`);
+  updateTag("dashboard-metrics");
+  updateTag("dashboard-low-stock");
   return null;
 }

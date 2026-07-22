@@ -1,10 +1,12 @@
+import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Search, Download } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { ProductList } from "@/components/product-list";
 import { ProductPagination } from "@/components/product-pagination";
+import { ProductSearchInput } from "@/components/product-search-input";
 
 const PER_PAGE = 20;
 
@@ -94,15 +96,9 @@ export default async function ProductsPage({
         </div>
       </div>
 
-      <form className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-        <input
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="Search by name or SKU..."
-          className="w-full h-9 bg-card border pl-9 pr-3 text-sm font-sans placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </form>
+      <Suspense fallback={null}>
+        <ProductSearchInput />
+      </Suspense>
 
       <ProductList tenantSlug={tenantSlug} currency={tenant.currency} products={products} canViewCost={canViewCost} />
 

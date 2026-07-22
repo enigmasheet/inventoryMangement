@@ -158,7 +158,6 @@ export function ProductList({ tenantSlug, currency, products, canViewCost = true
                             } else {
                               toast.success("Product deleted");
                             }
-                            router.refresh();
                           }}>Delete</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
